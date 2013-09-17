@@ -111,3 +111,31 @@ impl BitBucket {
         result
     }
 }
+
+#[test]
+fn test_BitBucket() {
+    let mut bb = BitBucket::new();
+
+    bb.shift_in(&BitBucket { bits: 0x1b, count: 5 });
+    assert!(bb.bits == 0x1b);
+    assert!(bb.count == 5);
+
+    let out = bb.shift_out(2);
+    assert!(bb.bits == 0x3);
+    assert!(bb.count == 3);
+    assert!(out.bits == 0x3);
+    assert!(out.count == 2);
+
+    let out = bb.shift_out(2);
+    assert!(bb.bits == 0x1);
+    assert!(bb.count == 1);
+    assert!(out.bits == 0x1);
+    assert!(out.count == 2);
+
+    let out = bb.shift_out(1);
+    assert!(bb.bits == 0x0);
+    assert!(bb.count == 0);
+    assert!(out.bits == 0x1);
+    assert!(out.count == 1);
+}
+
