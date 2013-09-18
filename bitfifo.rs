@@ -29,6 +29,26 @@ impl BitFifo {
         self.incoming.count + self.outgoing.count + uint::bits * self.queue.len()
     }
 
+    // Polymorphic push/pop:
+    fn push<T: BitFifoItem>(&mut self, source: &T) {
+        source.push_into(self);
+    }
+
+    fn pop<T: BitFifoItem>(&mut self) -> T {
+        let x: Option<T> = None;
+        /* Why doesn't this work?
+
+           self.pop_bits(bit_capacity<T>())
+
+         */
+        self.pop_bits(BitFifoItem::_bit_capacity(x))
+    }
+
+    fn pop_bits<T: BitFifoItem>(&mut self, count: uint) -> T {
+        BitFifoItem::pop_from(self, count)
+    }
+
+    // Concrete BitBucket push/pop:
     fn push_bitbucket(&mut self, source: &BitBucket) {
         let total = self.incoming.count + source.count;
         assert!(total <= 2 * uint::bits);
@@ -75,6 +95,37 @@ impl BitFifo {
         } else {
             self.outgoing.shift_out(count)
         }
+    }
+}
+
+trait BitFifoItem {
+    fn push_into(&self, fifo: &mut BitFifo);
+
+    fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
+
+    /* This is a workaround pattern taked from libstd/num/num.rs.
+     * See rust ticket #8888; callers can use the bit_capacity convenience
+     * function.
+     */
+    fn _bit_capacity(unused_self: Option<Self>) -> uint;
+}
+
+fn bit_capacity<T: BitFifoItem>() -> uint {
+    let x: Option<T> = None;
+    BitFifoItem::_bit_capacity(x)
+}
+
+impl BitFifoItem for BitBucket {
+    fn push_into(&self, fifo: &mut BitFifo) {
+        fifo.push_bitbucket(self);
+    }
+
+    fn pop_from(fifo: &mut BitFifo, count: uint) -> BitBucket {
+        fifo.pop_bitbucket(count)
+    }
+
+    fn _bit_capacity(_: Option<BitBucket>) -> uint {
+        uint::bits
     }
 }
 
