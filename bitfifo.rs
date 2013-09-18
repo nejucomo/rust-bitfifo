@@ -29,7 +29,7 @@ impl BitFifo {
         self.incoming.count + self.outgoing.count + uint::bits * self.queue.len()
     }
 
-    fn push(&mut self, source: &BitBucket) {
+    fn push_bitbucket(&mut self, source: &BitBucket) {
         let total = self.incoming.count + source.count;
         assert!(total <= 2 * uint::bits);
 
@@ -49,7 +49,7 @@ impl BitFifo {
         }
     }
 
-    fn pop(&mut self, count: uint) -> BitBucket {
+    fn pop_bitbucket(&mut self, count: uint) -> BitBucket {
         assert!(count <= uint::bits);
         assert!(count <= self.count());
 
@@ -201,14 +201,14 @@ mod tests {
 
                 // Fill:
                 for b in bs.iter() {
-                    fifo.push(b);
+                    fifo.push_bitbucket(b);
                     count += b.count;
                     assert_eq!(fifo.count(), count);
                 }
 
                 // Drain:
                 for b in bs.iter() {
-                    let out = fifo.pop(b.count);
+                    let out = fifo.pop_bitbucket(b.count);
                     assert_eq!(out, *b);
                     count -= out.count;
                     assert_eq!(fifo.count(), count);
@@ -222,9 +222,9 @@ mod tests {
                 // Fill/drain in lockstep:
                 for b in bs.iter() {
                     assert_eq!(fifo.count(), 0);
-                    fifo.push(b);
+                    fifo.push_bitbucket(b);
                     assert_eq!(fifo.count(), b.count);
-                    let out = fifo.pop(b.count);
+                    let out = fifo.pop_bitbucket(b.count);
                     assert_eq!(out, *b);
                     assert_eq!(fifo.count(), 0);
                 }
