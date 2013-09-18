@@ -123,11 +123,9 @@ mod tests {
     mod BitFifo {
         use self::utils::*;
 
-        #[test]
-        fn fill_drain_nibbles() { fill_drain(nibbles()) }
+        #[test] fn fill_drain_nibbles() { fill_drain(nibbles()) }
+        #[test] fn lockstep_nibbles() { lockstep(nibbles()) }
 
-        #[test]
-        fn lockstep_nibbles() { lockstep(nibbles()) }
 
         mod utils {
             use BitFifo;
@@ -183,17 +181,10 @@ mod tests {
     mod BitBucket {
         use self::utils::*;
 
-        #[test]
-        fn all_in_all_out() { iotest(shift_in_all, shift_out_all) }
-
-        #[test]
-        fn all_in_chunked_out() { iotest(shift_in_all, shift_out_chunked) }
-
-        #[test]
-        fn chunked_in_all_out() { iotest(shift_in_chunked, shift_out_all) }
-
-        #[test]
-        fn chunked_in_chunked_out() { iotest(shift_in_chunked, shift_out_chunked) }
+        #[test] fn all_in_all_out() { iotest(shift_in_all, shift_out_all) }
+        #[test] fn all_in_chunked_out() { iotest(shift_in_all, shift_out_chunked) }
+        #[test] fn chunked_in_all_out() { iotest(shift_in_chunked, shift_out_all) }
+        #[test] fn chunked_in_chunked_out() { iotest(shift_in_chunked, shift_out_chunked) }
 
 
         mod utils {
