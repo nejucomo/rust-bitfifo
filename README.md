@@ -13,12 +13,12 @@ I'm new to rust.  If you have suggestions or patches, please file tickets!
 Installation
 ============
 
-    ```
-    $ git clone 'https://github.com/nejucomo/rust-bitfifo'
-    $ cd rust-bitfifo
-    $ rust test
-    $ rust build
-    ```
+```bash
+$ git clone 'https://github.com/nejucomo/rust-bitfifo'
+$ cd rust-bitfifo
+$ rust test
+$ rust build
+```
 
 Goals
 =====
