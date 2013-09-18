@@ -67,6 +67,7 @@ impl BitFifo {
             }
 
             assert!(count <= self.outgoing.count + result.count);
+            assert!(count >= result.count);
             result.shift_in(&self.outgoing.shift_out(count - result.count));
 
             result
@@ -130,6 +131,21 @@ mod tests {
         #[test] fn fill_drain_words() { fill_drain(words()) }
         #[test] fn lockstep_words() { lockstep(words()) }
 
+        // Test only the first or first two elements of each data set to hunt for edge cases:
+        #[test] fn fill_drain_nibbles_1() { on_first_n(fill_drain, nibbles(), 1) }
+        #[test] fn lockstep_nibbles_1() { on_first_n(lockstep, nibbles(), 1) }
+        #[test] fn fill_drain_bytes_1() { on_first_n(fill_drain, bytes(), 1) }
+        #[test] fn lockstep_bytes_1() { on_first_n(lockstep, bytes(), 1) }
+        #[test] fn fill_drain_words_1() { on_first_n(fill_drain, words(), 1) }
+        #[test] fn lockstep_words_1() { on_first_n(lockstep, words(), 1) }
+
+        #[test] fn fill_drain_nibbles_2() { on_first_n(fill_drain, nibbles(), 2) }
+        #[test] fn lockstep_nibbles_2() { on_first_n(lockstep, nibbles(), 2) }
+        #[test] fn fill_drain_bytes_2() { on_first_n(fill_drain, bytes(), 2) }
+        #[test] fn lockstep_bytes_2() { on_first_n(lockstep, bytes(), 2) }
+        #[test] fn fill_drain_words_2() { on_first_n(fill_drain, words(), 2) }
+        #[test] fn lockstep_words_2() { on_first_n(lockstep, words(), 2) }
+
 
         mod utils {
             use std::uint;
@@ -165,6 +181,11 @@ mod tests {
             }
 
             // Test implementations, given a dataset:
+            // A HOF for searching for edge case bugs:
+            pub fn on_first_n(f: &fn (&[BitBucket]), bs: &[BitBucket], n: uint) {
+                f(bs.slice(0, n))
+            }
+
             pub fn fill_drain(bs: &[BitBucket]) {
                 let mut fifo = BitFifo::new();
                 let mut count = 0;
