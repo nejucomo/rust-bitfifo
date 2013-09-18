@@ -66,7 +66,7 @@ impl BitFifo {
               }
             }
 
-            assert!(count < self.outgoing.count + result.count);
+            assert!(count <= self.outgoing.count + result.count);
             result.shift_in(&self.outgoing.shift_out(count - result.count));
 
             result
@@ -143,6 +143,22 @@ mod tests {
                 assert_eq!(out, BitBucket { bits: nib, count: 4 });
             }
             assert_eq!(fifo.count(), 0);
+        }
+
+        #[test]
+        fn lockstep_fill_and_drain_nibbles() {
+            let mut fifo = BitFifo::new();
+
+            // Fill/drain in lockstep:
+            for nib in range(0u, 16) {
+                let bb = BitBucket { bits: nib, count: 4 };
+                assert_eq!(fifo.count(), 0);
+                fifo.push(&bb);
+                assert_eq!(fifo.count(), 4);
+                let out = fifo.pop(4);
+                assert_eq!(fifo.count(), 0);
+                assert_eq!(bb, out);
+            }
         }
     }
 
