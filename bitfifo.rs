@@ -120,6 +120,32 @@ impl BitBucket {
 
 #[cfg(test)]
 mod tests {
+    mod BitFifo {
+        use BitFifo;
+        use BitBucket;
+
+        #[test]
+        fn fill_all_drain_all_nibbles() {
+            let mut fifo = BitFifo::new();
+
+            // Fill:
+            for nib in range(0u, 16) {
+                assert_eq!(fifo.count(), 4 * nib);
+                fifo.push(&BitBucket { bits: nib, count: 4 });
+                assert_eq!(fifo.count(), 4 * (nib+1));
+            }
+
+            // Drain:
+            for nib in range(0u, 16) {
+                assert_eq!(fifo.count(), 4u * (16u - nib));
+                let out = fifo.pop(4);
+                assert_eq!(fifo.count(), 4u * (16u - (nib+1)));
+                assert_eq!(out, BitBucket { bits: nib, count: 4 });
+            }
+            assert_eq!(fifo.count(), 0);
+        }
+    }
+
     mod BitBucket {
         use self::utils::*;
 
