@@ -104,6 +104,10 @@ impl BitBucket {
     }
 
     fn shift_out(&mut self, count: uint) -> BitBucket {
+        if (count == 0u) {
+            return BitBucket::new();
+        }
+
         assert!(count <= self.count);
 
         let keep = safe_sub(self.count, count);
@@ -112,10 +116,7 @@ impl BitBucket {
             count: count
         };
 
-        assert!(keep <= uint::bits);
-        if keep < uint::bits {
-            self.bits = self.bits & safe_sub(1 << keep, 1);
-        }
+        self.bits = self.bits & safe_sub(1 << keep, 1);
         self.count = keep;
 
         result
@@ -179,7 +180,7 @@ mod tests {
 
             pub fn words() -> ~[BitBucket] {
                 let mut v = ~[];
-                let mut word = 0x12345678; // BUG: assumes 64 bit uint.
+                let mut word = 0x0123456789abcdef; // BUG: assumes 64 bit uint.
 
                 for i in range(0u, 2^16) {
                     v.push(BitBucket { bits: word, count: uint::bits });
@@ -239,7 +240,7 @@ mod tests {
             use std::uint;
             use BitBucket;
 
-            let src = BitBucket { bits: 0x12345678, count: uint::bits };
+            let src = BitBucket { bits: 0x0123456789abcdef, count: uint::bits };
             let mut bb = src.clone();
             assert_eq!(*BitBucket::empty(), bb.shift_out(0));
             assert_eq!(src, bb);
