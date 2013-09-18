@@ -38,7 +38,7 @@ impl BitFifo {
 
             let mut overflow = BitBucket::new();
             overflow.shift_in(&self.incoming);
-            overflow.shift_in(&incoming.shift_out(uint::bits - self.incoming.count));
+            overflow.shift_in(&incoming.shift_out(safe_sub(uint::bits, self.incoming.count)));
             assert_eq!(overflow.count, uint::bits);
             self.queue.push_back(overflow.bits);
 
@@ -68,7 +68,7 @@ impl BitFifo {
 
             assert!(count <= self.outgoing.count + result.count);
             assert!(count >= result.count);
-            result.shift_in(&self.outgoing.shift_out(count - result.count));
+            result.shift_in(&self.outgoing.shift_out(safe_sub(count, result.count)));
 
             result
 
@@ -106,17 +106,25 @@ impl BitBucket {
     fn shift_out(&mut self, count: uint) -> BitBucket {
         assert!(count <= self.count);
 
-        let keep = self.count - count;
+        let keep = safe_sub(self.count, count);
         let result = BitBucket {
             bits: self.bits >> keep,
             count: count
         };
 
-        self.bits = self.bits & ((1 << keep) - 1);
+        assert!(keep <= uint::bits);
+        if keep < uint::bits {
+            self.bits = self.bits & safe_sub(1 << keep, 1);
+        }
         self.count = keep;
 
         result
     }
+}
+
+fn safe_sub(a: uint, b: uint) -> uint {
+    assert!(a >= b);
+    a - b
 }
 
 #[cfg(test)]
