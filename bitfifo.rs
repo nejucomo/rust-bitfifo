@@ -125,17 +125,41 @@ mod tests {
 
         #[test] fn fill_drain_nibbles() { fill_drain(nibbles()) }
         #[test] fn lockstep_nibbles() { lockstep(nibbles()) }
+        #[test] fn fill_drain_bytes() { fill_drain(bytes()) }
+        #[test] fn lockstep_bytes() { lockstep(bytes()) }
+        #[test] fn fill_drain_words() { fill_drain(words()) }
+        #[test] fn lockstep_words() { lockstep(words()) }
 
 
         mod utils {
+            use std::uint;
             use BitFifo;
             use BitBucket;
 
             // datasets:
             pub fn nibbles() -> ~[BitBucket] {
                 let mut v = ~[];
-                for nib in range(0u, 16) {
+                for nib in range(0u, 2^4) {
                     v.push(BitBucket { bits: nib, count: 4 });
+                }
+                v
+            }
+
+            pub fn bytes() -> ~[BitBucket] {
+                let mut v = ~[];
+                for byte in range(0u, 2^8) {
+                    v.push(BitBucket { bits: byte, count: 8 });
+                }
+                v
+            }
+
+            pub fn words() -> ~[BitBucket] {
+                let mut v = ~[];
+                let mut word = 0x12345678; // BUG: assumes 64 bit uint.
+
+                for i in range(0u, 2^16) {
+                    v.push(BitBucket { bits: word, count: uint::bits });
+                    word = (word << 1) + i;
                 }
                 v
             }
@@ -154,7 +178,7 @@ mod tests {
 
                 // Drain:
                 for b in bs.iter() {
-                    let out = fifo.pop(4);
+                    let out = fifo.pop(b.count);
                     assert_eq!(out, *b);
                     count -= out.count;
                     assert_eq!(fifo.count(), count);
