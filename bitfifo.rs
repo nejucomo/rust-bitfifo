@@ -121,43 +121,61 @@ impl BitBucket {
 #[cfg(test)]
 mod tests {
     mod BitFifo {
-        use BitFifo;
-        use BitBucket;
+        use self::utils::*;
 
         #[test]
-        fn fill_all_drain_all_nibbles() {
-            let mut fifo = BitFifo::new();
-
-            // Fill:
-            for nib in range(0u, 16) {
-                assert_eq!(fifo.count(), 4 * nib);
-                fifo.push(&BitBucket { bits: nib, count: 4 });
-                assert_eq!(fifo.count(), 4 * (nib+1));
-            }
-
-            // Drain:
-            for nib in range(0u, 16) {
-                assert_eq!(fifo.count(), 4u * (16u - nib));
-                let out = fifo.pop(4);
-                assert_eq!(fifo.count(), 4u * (16u - (nib+1)));
-                assert_eq!(out, BitBucket { bits: nib, count: 4 });
-            }
-            assert_eq!(fifo.count(), 0);
-        }
+        fn fill_drain_nibbles() { fill_drain(nibbles()) }
 
         #[test]
-        fn lockstep_fill_and_drain_nibbles() {
-            let mut fifo = BitFifo::new();
+        fn lockstep_nibbles() { lockstep(nibbles()) }
 
-            // Fill/drain in lockstep:
-            for nib in range(0u, 16) {
-                let bb = BitBucket { bits: nib, count: 4 };
+        mod utils {
+            use BitFifo;
+            use BitBucket;
+
+            // datasets:
+            pub fn nibbles() -> ~[BitBucket] {
+                let mut v = ~[];
+                for nib in range(0u, 16) {
+                    v.push(BitBucket { bits: nib, count: 4 });
+                }
+                v
+            }
+
+            // Test implementations, given a dataset:
+            pub fn fill_drain(bs: &[BitBucket]) {
+                let mut fifo = BitFifo::new();
+                let mut count = 0;
+
+                // Fill:
+                for b in bs.iter() {
+                    fifo.push(b);
+                    count += b.count;
+                    assert_eq!(fifo.count(), count);
+                }
+
+                // Drain:
+                for b in bs.iter() {
+                    let out = fifo.pop(4);
+                    assert_eq!(out, *b);
+                    count -= out.count;
+                    assert_eq!(fifo.count(), count);
+                }
                 assert_eq!(fifo.count(), 0);
-                fifo.push(&bb);
-                assert_eq!(fifo.count(), 4);
-                let out = fifo.pop(4);
-                assert_eq!(fifo.count(), 0);
-                assert_eq!(bb, out);
+            }
+
+            pub fn lockstep(bs: &[BitBucket]) {
+                let mut fifo = BitFifo::new();
+
+                // Fill/drain in lockstep:
+                for b in bs.iter() {
+                    assert_eq!(fifo.count(), 0);
+                    fifo.push(b);
+                    assert_eq!(fifo.count(), b.count);
+                    let out = fifo.pop(b.count);
+                    assert_eq!(out, *b);
+                    assert_eq!(fifo.count(), 0);
+                }
             }
         }
     }
