@@ -120,69 +120,57 @@ impl BitBucket {
 
 #[cfg(test)]
 mod tests {
-    use super::BitBucket;
+    mod BitBucket {
+        use super::super::BitBucket;
 
-    static full: BitBucket = BitBucket { bits: 0x1b, count: 5 };
-    static chunks: [BitBucket, .. 3] = [
-        BitBucket { bits: 0x3, count: 2 },
-        BitBucket { bits: 0x1, count: 2 },
-        BitBucket { bits: 0x1, count: 1 },
-    ];
+        static full: BitBucket = BitBucket { bits: 0x1b, count: 5 };
+        static chunks: [BitBucket, .. 3] = [
+            BitBucket { bits: 0x3, count: 2 },
+            BitBucket { bits: 0x1, count: 2 },
+            BitBucket { bits: 0x1, count: 1 },
+        ];
 
-    #[test]
-    fn test_BitBucket_all_in_all_out() {
-        let bb = &mut BitBucket::new();
+        #[test]
+        fn all_in_all_out() { _inout_test(shift_in_all, shift_out_all) }
 
-        shift_in_all(bb);
-        shift_out_all(bb);
-    }
+        #[test]
+        fn all_in_chunked_out() { _inout_test(shift_in_all, shift_out_chunked) }
 
-    #[test]
-    fn test_BitBucket_all_in_chunked_out() {
-        let bb = &mut BitBucket::new();
+        #[test]
+        fn chunked_in_all_out() { _inout_test(shift_in_chunked, shift_out_all) }
 
-        shift_in_all(bb);
-        shift_out_chunked(bb);
-    }
+        #[test]
+        fn chunked_in_chunked_out() { _inout_test(shift_in_chunked, shift_out_chunked) }
 
-    #[test]
-    fn test_BitBucket_chunked_in_all_out() {
-        let bb = &mut BitBucket::new();
-
-        shift_in_chunked(bb);
-        shift_out_all(bb);
-    }
-
-    #[test]
-    fn test_BitBucket_chunked_in_chunked_out() {
-        let bb = &mut BitBucket::new();
-
-        shift_in_chunked(bb);
-        shift_out_chunked(bb);
-    }
-
-    fn shift_in_all(dest: &mut BitBucket) {
-        dest.shift_in(&full);
-        assert!(*dest == full);
-    }
-
-    fn shift_in_chunked(dest: &mut BitBucket) {
-        for c in chunks.iter() {
-            dest.shift_in(c);
+        fn _inout_test(inop: &fn(&mut BitBucket), outop: &fn(&mut BitBucket)) {
+            let bb = &mut BitBucket::new();
+            inop(bb);
+            outop(bb);
         }
-        assert!(*dest == full);
-    }
 
-    fn shift_out_all(src: &mut BitBucket) {
-        let out = src.shift_out(full.count);
-        assert!(out == full);
-        assert!(*src == *BitBucket::empty());
-    }
+        fn shift_in_all(dest: &mut BitBucket) {
+            dest.shift_in(&full);
+            assert!(*dest == full);
+        }
 
-    fn shift_out_chunked(src: &mut BitBucket) {
-        for c in chunks.iter() {
-            let out = src.shift_out(c.count);
-            assert!(*c == out);
+        fn shift_in_chunked(dest: &mut BitBucket) {
+            for c in chunks.iter() {
+                dest.shift_in(c);
+            }
+            assert!(*dest == full);
+        }
+
+        fn shift_out_all(src: &mut BitBucket) {
+            let out = src.shift_out(full.count);
+            assert!(out == full);
+            assert!(*src == *BitBucket::empty());
+        }
+
+        fn shift_out_chunked(src: &mut BitBucket) {
+            for c in chunks.iter() {
+                let out = src.shift_out(c.count);
+                assert!(*c == out);
+            }
         }
     }
 }
