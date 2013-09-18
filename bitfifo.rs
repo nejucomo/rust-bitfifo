@@ -121,7 +121,7 @@ impl BitBucket {
 #[cfg(test)]
 mod tests {
     mod BitBucket {
-        use self::testutils::*;
+        use self::utils::*;
 
         #[test]
         fn all_in_all_out() { iotest(shift_in_all, shift_out_all) }
@@ -136,7 +136,7 @@ mod tests {
         fn chunked_in_chunked_out() { iotest(shift_in_chunked, shift_out_chunked) }
 
 
-        mod testutils {
+        mod utils {
             use BitBucket;
 
             static full: BitBucket = BitBucket { bits: 0x1b, count: 5 };
