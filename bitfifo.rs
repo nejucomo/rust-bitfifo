@@ -234,6 +234,17 @@ mod tests {
     mod BitBucket {
         use self::utils::*;
 
+        #[test]
+        fn shift_out_0() {
+            use std::uint;
+            use BitBucket;
+
+            let src = BitBucket { bits: 0x12345678, count: uint::bits };
+            let mut bb = src.clone();
+            assert_eq!(*BitBucket::empty(), bb.shift_out(0));
+            assert_eq!(src, bb);
+        }
+
         #[test] fn all_in_all_out() { iotest(shift_in_all, shift_out_all) }
         #[test] fn all_in_chunked_out() { iotest(shift_in_all, shift_out_chunked) }
         #[test] fn chunked_in_all_out() { iotest(shift_in_chunked, shift_out_all) }
