@@ -39,7 +39,7 @@ impl BitFifo {
             let mut overflow = BitBucket::new();
             overflow.shift_in(&self.incoming);
             overflow.shift_in(&incoming.shift_out(uint::bits - self.incoming.count));
-            assert!(overflow.count == uint::bits);
+            assert_eq!(overflow.count, uint::bits);
             self.queue.push_back(overflow.bits);
 
             self.incoming = incoming;
@@ -154,26 +154,26 @@ mod tests {
 
             pub fn shift_in_all(dest: &mut BitBucket) {
                 dest.shift_in(&full);
-                assert!(*dest == full);
+                assert_eq!(*dest, full);
             }
 
             pub fn shift_in_chunked(dest: &mut BitBucket) {
                 for c in chunks.iter() {
                     dest.shift_in(c);
                 }
-                assert!(*dest == full);
+                assert_eq!(*dest, full);
             }
 
             pub fn shift_out_all(src: &mut BitBucket) {
                 let out = src.shift_out(full.count);
-                assert!(out == full);
-                assert!(*src == *BitBucket::empty());
+                assert_eq!(out, full);
+                assert_eq!(*src, *BitBucket::empty());
             }
 
             pub fn shift_out_chunked(src: &mut BitBucket) {
                 for c in chunks.iter() {
                     let out = src.shift_out(c.count);
-                    assert!(*c == out);
+                    assert_eq!(*c, out);
                 }
             }
         }
