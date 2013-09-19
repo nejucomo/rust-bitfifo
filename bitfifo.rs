@@ -196,6 +196,14 @@ mod tests {
         #[test] fn lockstep_bb_bytes     () { lockstep_bb   (bb_bytes   ()) }
         #[test] fn lockstep_bb_words     () { lockstep_bb   (bb_words   ()) }
 
+        // item push/pop tests:
+        #[test] fn fill_drain_nibble_items () { fill_drain_items (bb_nibbles ()) }
+        #[test] fn fill_drain_byte_items   () { fill_drain_items (bb_bytes   ()) }
+        #[test] fn fill_drain_word_items   () { fill_drain_items (bb_words   ()) }
+        #[test] fn lockstep_nibble_items   () { lockstep_items   (bb_nibbles ()) }
+        #[test] fn lockstep_byte_items     () { lockstep_items   (bb_bytes   ()) }
+        #[test] fn lockstep_word_items     () { lockstep_items   (bb_words   ()) }
+
 
         mod utils {
             use std::uint;
@@ -245,7 +253,7 @@ mod tests {
                 test_fill_drain(xs, push_item, pop_item)
             }
 
-            pub fn lockstep_items<T: BitFifoItem>(xs: &[BitBucket]) {
+            pub fn lockstep_items<T: BitFifoItem>(xs: &[T]) {
                 test_lockstep(xs, push_item, pop_item)
             }
 
