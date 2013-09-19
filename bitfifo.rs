@@ -189,12 +189,12 @@ mod tests {
         use self::utils::*;
 
         // BitBucket push/pop tests:
-        #[test] fn fill_drain_nibbles () { fill_drain_bb (nibbles ()) }
-        #[test] fn fill_drain_bytes   () { fill_drain_bb (bytes   ()) }
-        #[test] fn fill_drain_words   () { fill_drain_bb (words   ()) }
-        #[test] fn lockstep_nibbles   () { lockstep_bb   (nibbles ()) }
-        #[test] fn lockstep_bytes     () { lockstep_bb   (bytes   ()) }
-        #[test] fn lockstep_words     () { lockstep_bb   (words   ()) }
+        #[test] fn fill_drain_bb_nibbles () { fill_drain_bb (bb_nibbles ()) }
+        #[test] fn fill_drain_bb_bytes   () { fill_drain_bb (bb_bytes   ()) }
+        #[test] fn fill_drain_bb_words   () { fill_drain_bb (bb_words   ()) }
+        #[test] fn lockstep_bb_nibbles   () { lockstep_bb   (bb_nibbles ()) }
+        #[test] fn lockstep_bb_bytes     () { lockstep_bb   (bb_bytes   ()) }
+        #[test] fn lockstep_bb_words     () { lockstep_bb   (bb_words   ()) }
 
 
         mod utils {
@@ -205,7 +205,7 @@ mod tests {
             use BitBucket;
 
             // datasets:
-            pub fn nibbles() -> ~[BitBucket] {
+            pub fn bb_nibbles() -> ~[BitBucket] {
                 let mut v = ~[];
                 for nib in range(0u, 2^4) {
                     v.push(BitBucket { bits: nib, count: 4 });
@@ -213,7 +213,7 @@ mod tests {
                 v
             }
 
-            pub fn bytes() -> ~[BitBucket] {
+            pub fn bb_bytes() -> ~[BitBucket] {
                 let mut v = ~[];
                 for byte in range(0u, 2^8) {
                     v.push(BitBucket { bits: byte, count: 8 });
@@ -221,7 +221,7 @@ mod tests {
                 v
             }
 
-            pub fn words() -> ~[BitBucket] {
+            pub fn bb_words() -> ~[BitBucket] {
                 let mut v = ~[];
                 let mut word = 0x0123456789abcdef; // BUG: assumes 64 bit uint.
 
