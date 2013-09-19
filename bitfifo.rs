@@ -231,9 +231,9 @@ mod tests {
             }
 
             // Test implementations, given a dataset:
-            pub fn fill_drain<T: Eq + Clone>(xs: &[T],
-                                             push: &fn(&mut BitFifo, &T) -> uint,
-                                             pop: &fn(&mut BitFifo, &T) -> (T, uint))
+            pub fn fill_drain<T: Eq>(xs: &[T],
+                                     push: &fn(&mut BitFifo, &T) -> uint,
+                                     pop: &fn(&mut BitFifo, &T) -> (T, uint))
             {
                 let mut fifo = BitFifo::new();
                 let mut count = 0;
@@ -247,16 +247,16 @@ mod tests {
                 // Drain:
                 for x in xs.iter() {
                     let (out, c) = pop(&mut fifo, x);
-                    assert_eq!(out, (*x).clone());
+                    assert_eq!(&out, x);
                     count -= c;
                     assert_eq!(fifo.count(), count);
                 }
                 assert_eq!(fifo.count(), 0);
             }
 
-            pub fn lockstep<T: Eq + Clone>(xs: &[T],
-                                           push: &fn(&mut BitFifo, &T) -> uint,
-                                           pop: &fn(&mut BitFifo, &T) -> (T, uint))
+            pub fn lockstep<T: Eq>(xs: &[T],
+                                   push: &fn(&mut BitFifo, &T) -> uint,
+                                   pop: &fn(&mut BitFifo, &T) -> (T, uint))
             {
                 let mut fifo = BitFifo::new();
 
@@ -266,7 +266,7 @@ mod tests {
                     let c = push(&mut fifo, x);
                     assert_eq!(fifo.count(), c);
                     let (out, _) = pop(&mut fifo, x);
-                    assert_eq!(out, (*x).clone());
+                    assert_eq!(&out, x);
                     assert_eq!(fifo.count(), 0);
                 }
             }
