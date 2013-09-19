@@ -96,7 +96,7 @@ impl BitFifo {
     }
 }
 
-pub trait BitFifoItem : Clone {
+pub trait BitFifoItem : Eq {
     fn push_into(&self, fifo: &mut BitFifo, count: uint);
 
     fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
@@ -200,6 +200,8 @@ mod tests {
         mod utils {
             use std::uint;
             use BitFifo;
+            use BitFifoItem;
+            use bit_capacity;
             use BitBucket;
 
             // datasets:
@@ -231,9 +233,46 @@ mod tests {
             }
 
             // Test implementations, given a dataset:
-            pub fn fill_drain<T: Eq>(xs: &[T],
-                                     push: &fn(&mut BitFifo, &T) -> uint,
-                                     pop: &fn(&mut BitFifo, &T) -> (T, uint))
+            pub fn fill_drain_bb(bs: &[BitBucket]) {
+                test_fill_drain(bs, push_bb, pop_bb)
+            }
+
+            pub fn lockstep_bb(bs: &[BitBucket]) {
+                test_lockstep(bs, push_bb, pop_bb)
+            }
+
+            pub fn fill_drain_items<T: BitFifoItem>(xs: &[T]) {
+                test_fill_drain(xs, push_item, pop_item)
+            }
+
+            pub fn lockstep_items<T: BitFifoItem>(xs: &[BitBucket]) {
+                test_lockstep(xs, push_item, pop_item)
+            }
+
+            // Private:
+            fn push_bb(fifo: &mut BitFifo, b: &BitBucket) -> uint {
+                fifo.push_bitbucket(b);
+                b.count
+            }
+
+            fn pop_bb(fifo: &mut BitFifo, b: &BitBucket) -> (BitBucket, uint) {
+                let out = fifo.pop_bitbucket(b.count);
+                (out, b.count)
+            }
+
+            fn push_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> uint {
+                fifo.push(x);
+                bit_capacity::<T>()
+            }
+
+            fn pop_item<T: BitFifoItem>(fifo: &mut BitFifo, _: &T) -> (T, uint) {
+                let out = fifo.pop();
+                (out, bit_capacity::<T>())
+            }
+
+            fn test_fill_drain<T: Eq>(xs: &[T],
+                                      push: &fn(&mut BitFifo, &T) -> uint,
+                                      pop: &fn(&mut BitFifo, &T) -> (T, uint))
             {
                 let mut fifo = BitFifo::new();
                 let mut count = 0;
@@ -254,9 +293,9 @@ mod tests {
                 assert_eq!(fifo.count(), 0);
             }
 
-            pub fn lockstep<T: Eq>(xs: &[T],
-                                   push: &fn(&mut BitFifo, &T) -> uint,
-                                   pop: &fn(&mut BitFifo, &T) -> (T, uint))
+            fn test_lockstep<T: Eq>(xs: &[T],
+                                    push: &fn(&mut BitFifo, &T) -> uint,
+                                    pop: &fn(&mut BitFifo, &T) -> (T, uint))
             {
                 let mut fifo = BitFifo::new();
 
@@ -269,24 +308,6 @@ mod tests {
                     assert_eq!(&out, x);
                     assert_eq!(fifo.count(), 0);
                 }
-            }
-
-            fn push_bb(fifo: &mut BitFifo, b: &BitBucket) -> uint {
-                fifo.push_bitbucket(b);
-                b.count
-            }
-
-            fn pop_bb(fifo: &mut BitFifo, b: &BitBucket) -> (BitBucket, uint) {
-                let out = fifo.pop_bitbucket(b.count);
-                (out, b.count)
-            }
-
-            pub fn fill_drain_bb(bs: &[BitBucket]) {
-                fill_drain(bs, push_bb, pop_bb)
-            }
-
-            pub fn lockstep_bb(bs: &[BitBucket]) {
-                lockstep(bs, push_bb, pop_bb)
             }
         }
     }
