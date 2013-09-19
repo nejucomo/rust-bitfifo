@@ -31,17 +31,15 @@ impl BitFifo {
 
     // Polymorphic push/pop:
     fn push<T: BitFifoItem>(&mut self, source: &T) {
-        source.push_into(self);
+        self.push_bits(source, bit_capacity::<T>());
+    }
+
+    fn push_bits<T: BitFifoItem>(&mut self, source: &T, count: uint) {
+        source.push_into(self, count);
     }
 
     fn pop<T: BitFifoItem>(&mut self) -> T {
-        let x: Option<T> = None;
-        /* Why doesn't this work?
-
-           self.pop_bits(bit_capacity<T>())
-
-         */
-        self.pop_bits(BitFifoItem::_bit_capacity(x))
+        self.pop_bits(bit_capacity::<T>())
     }
 
     fn pop_bits<T: BitFifoItem>(&mut self, count: uint) -> T {
@@ -98,26 +96,32 @@ impl BitFifo {
     }
 }
 
-trait BitFifoItem {
-    fn push_into(&self, fifo: &mut BitFifo);
+pub trait BitFifoItem : Clone {
+    fn push_into(&self, fifo: &mut BitFifo, count: uint);
 
     fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
 
     /* This is a workaround pattern taked from libstd/num/num.rs.
-     * See rust ticket #8888; callers can use the bit_capacity convenience
-     * function.
+     * See rust ticket #8888; callers can use this convenience function:
+
+         bit_capacity::<T>()
      */
     fn _bit_capacity(unused_self: Option<Self>) -> uint;
 }
 
-fn bit_capacity<T: BitFifoItem>() -> uint {
+pub fn bit_capacity<T: BitFifoItem>() -> uint {
     let x: Option<T> = None;
     BitFifoItem::_bit_capacity(x)
 }
 
 impl BitFifoItem for BitBucket {
-    fn push_into(&self, fifo: &mut BitFifo) {
-        fifo.push_bitbucket(self);
+    fn push_into(&self, fifo: &mut BitFifo, count: uint) {
+        assert!(count <= self.count);
+        if (count < self.count) {
+            fifo.push_bitbucket(&BitBucket { bits: self.bits, count: count });
+        } else {
+            fifo.push_bitbucket(self);
+        }
     }
 
     fn pop_from(fifo: &mut BitFifo, count: uint) -> BitBucket {
@@ -210,6 +214,7 @@ mod tests {
         mod utils {
             use std::uint;
             use BitFifo;
+            use BitFifoItem;
             use BitBucket;
 
             // datasets:
@@ -279,6 +284,29 @@ mod tests {
                     assert_eq!(out, *b);
                     assert_eq!(fifo.count(), 0);
                 }
+            }
+
+            // BitBucketItem trait testing:
+            pub fn fill_drain_items<T: Eq + BitFifoItem>(xs: &[T]) {
+                use bit_capacity;
+                let mut fifo = BitFifo::new();
+                let mut count = 0;
+
+                // Fill:
+                for x in xs.iter() {
+                    fifo.push(x);
+                    count += bit_capacity::<T>();
+                    assert_eq!(fifo.count(), count);
+                }
+
+                // Drain:
+                for x in xs.iter() {
+                    let out: T = fifo.pop();
+                    assert_eq!((*x).clone(), out);
+                    count -= bit_capacity::<T>();
+                    assert_eq!(fifo.count(), count);
+                }
+                assert_eq!(fifo.count(), 0);
             }
         }
     }
