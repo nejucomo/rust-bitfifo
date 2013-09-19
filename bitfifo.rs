@@ -189,27 +189,27 @@ mod tests {
         use self::utils::*;
 
         // BitBucket push/pop tests:
-        #[test] fn fill_drain_nibbles() { fill_drain_bb(nibbles()) }
-        #[test] fn lockstep_nibbles() { lockstep_bb(nibbles()) }
-        #[test] fn fill_drain_bytes() { fill_drain_bb(bytes()) }
-        #[test] fn lockstep_bytes() { lockstep_bb(bytes()) }
-        #[test] fn fill_drain_words() { fill_drain_bb(words()) }
-        #[test] fn lockstep_words() { lockstep_bb(words()) }
+        #[test] fn fill_drain_nibbles () { fill_drain_bb (nibbles ()) }
+        #[test] fn fill_drain_bytes   () { fill_drain_bb (bytes   ()) }
+        #[test] fn fill_drain_words   () { fill_drain_bb (words   ()) }
+        #[test] fn lockstep_nibbles   () { lockstep_bb   (nibbles ()) }
+        #[test] fn lockstep_bytes     () { lockstep_bb   (bytes   ()) }
+        #[test] fn lockstep_words     () { lockstep_bb   (words   ()) }
 
         // Test only the first or first two elements of each data set to hunt for edge cases:
-        #[test] fn fill_drain_nibbles_1() { on_first_n(fill_drain_bb, nibbles(), 1) }
-        #[test] fn lockstep_nibbles_1() { on_first_n(lockstep_bb, nibbles(), 1) }
-        #[test] fn fill_drain_bytes_1() { on_first_n(fill_drain_bb, bytes(), 1) }
-        #[test] fn lockstep_bytes_1() { on_first_n(lockstep_bb, bytes(), 1) }
-        #[test] fn fill_drain_words_1() { on_first_n(fill_drain_bb, words(), 1) }
-        #[test] fn lockstep_words_1() { on_first_n(lockstep_bb, words(), 1) }
+        #[test] fn fill_drain_nibbles_1 () { on_first_n(fill_drain_bb, nibbles(), 1) }
+        #[test] fn fill_drain_bytes_1   () { on_first_n(fill_drain_bb, bytes()  , 1) }
+        #[test] fn fill_drain_words_1   () { on_first_n(fill_drain_bb, words()  , 1) }
+        #[test] fn lockstep_nibbles_1   () { on_first_n(lockstep_bb  , nibbles(), 1) }
+        #[test] fn lockstep_bytes_1     () { on_first_n(lockstep_bb  , bytes()  , 1) }
+        #[test] fn lockstep_words_1     () { on_first_n(lockstep_bb  , words()  , 1) }
 
-        #[test] fn fill_drain_nibbles_2() { on_first_n(fill_drain_bb, nibbles(), 2) }
-        #[test] fn lockstep_nibbles_2() { on_first_n(lockstep_bb, nibbles(), 2) }
-        #[test] fn fill_drain_bytes_2() { on_first_n(fill_drain_bb, bytes(), 2) }
-        #[test] fn lockstep_bytes_2() { on_first_n(lockstep_bb, bytes(), 2) }
-        #[test] fn fill_drain_words_2() { on_first_n(fill_drain_bb, words(), 2) }
-        #[test] fn lockstep_words_2() { on_first_n(lockstep_bb, words(), 2) }
+        #[test] fn fill_drain_nibbles_2 () { on_first_n(fill_drain_bb, nibbles(), 2) }
+        #[test] fn fill_drain_bytes_2   () { on_first_n(fill_drain_bb, bytes()  , 2) }
+        #[test] fn fill_drain_words_2   () { on_first_n(fill_drain_bb, words()  , 2) }
+        #[test] fn lockstep_nibbles_2   () { on_first_n(lockstep_bb  , nibbles(), 2) }
+        #[test] fn lockstep_bytes_2     () { on_first_n(lockstep_bb  , bytes()  , 2) }
+        #[test] fn lockstep_words_2     () { on_first_n(lockstep_bb  , words()  , 2) }
 
 
         mod utils {
