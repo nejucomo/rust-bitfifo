@@ -196,26 +196,10 @@ mod tests {
         #[test] fn lockstep_bytes     () { lockstep_bb   (bytes   ()) }
         #[test] fn lockstep_words     () { lockstep_bb   (words   ()) }
 
-        // Test only the first or first two elements of each data set to hunt for edge cases:
-        #[test] fn fill_drain_nibbles_1 () { on_first_n(fill_drain_bb, nibbles(), 1) }
-        #[test] fn fill_drain_bytes_1   () { on_first_n(fill_drain_bb, bytes()  , 1) }
-        #[test] fn fill_drain_words_1   () { on_first_n(fill_drain_bb, words()  , 1) }
-        #[test] fn lockstep_nibbles_1   () { on_first_n(lockstep_bb  , nibbles(), 1) }
-        #[test] fn lockstep_bytes_1     () { on_first_n(lockstep_bb  , bytes()  , 1) }
-        #[test] fn lockstep_words_1     () { on_first_n(lockstep_bb  , words()  , 1) }
-
-        #[test] fn fill_drain_nibbles_2 () { on_first_n(fill_drain_bb, nibbles(), 2) }
-        #[test] fn fill_drain_bytes_2   () { on_first_n(fill_drain_bb, bytes()  , 2) }
-        #[test] fn fill_drain_words_2   () { on_first_n(fill_drain_bb, words()  , 2) }
-        #[test] fn lockstep_nibbles_2   () { on_first_n(lockstep_bb  , nibbles(), 2) }
-        #[test] fn lockstep_bytes_2     () { on_first_n(lockstep_bb  , bytes()  , 2) }
-        #[test] fn lockstep_words_2     () { on_first_n(lockstep_bb  , words()  , 2) }
-
 
         mod utils {
             use std::uint;
             use BitFifo;
-            use BitFifoItem;
             use BitBucket;
 
             // datasets:
@@ -247,11 +231,6 @@ mod tests {
             }
 
             // Test implementations, given a dataset:
-            // A HOF for searching for edge case bugs:
-            pub fn on_first_n(f: &fn (&[BitBucket]), bs: &[BitBucket], n: uint) {
-                f(bs.slice(0, n))
-            }
-
             pub fn fill_drain<T: Eq + Clone>(xs: &[T],
                                              push: &fn(&mut BitFifo, &T) -> uint,
                                              pop: &fn(&mut BitFifo, &T) -> (T, uint))
@@ -308,28 +287,6 @@ mod tests {
 
             pub fn lockstep_bb(bs: &[BitBucket]) {
                 lockstep(bs, push_bb, pop_bb)
-            }
-
-            pub fn fill_drain_items<T: Eq + BitFifoItem>(xs: &[T]) {
-                use bit_capacity;
-                let mut fifo = BitFifo::new();
-                let mut count = 0;
-
-                // Fill:
-                for x in xs.iter() {
-                    fifo.push(x);
-                    count += bit_capacity::<T>();
-                    assert_eq!(fifo.count(), count);
-                }
-
-                // Drain:
-                for x in xs.iter() {
-                    let out: T = fifo.pop();
-                    assert_eq!((*x).clone(), out);
-                    count -= bit_capacity::<T>();
-                    assert_eq!(fifo.count(), count);
-                }
-                assert_eq!(fifo.count(), 0);
             }
         }
     }
