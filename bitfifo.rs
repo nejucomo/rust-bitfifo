@@ -31,7 +31,7 @@ impl BitFifo {
 
     // Polymorphic push/pop:
     fn push<T: BitFifoItem>(&mut self, source: &T) {
-        self.push_bits(source, bit_capacity::<T>());
+        self.push_bits(source, source.bit_capacity());
     }
 
     fn push_bits<T: BitFifoItem>(&mut self, source: &T, count: uint) {
@@ -39,7 +39,7 @@ impl BitFifo {
     }
 
     fn pop<T: BitFifoItem>(&mut self) -> T {
-        self.pop_bits(bit_capacity::<T>())
+        self.pop_bits(full_bit_capacity::<T>())
     }
 
     fn pop_bits<T: BitFifoItem>(&mut self, count: uint) -> T {
@@ -101,17 +101,19 @@ pub trait BitFifoItem : Eq {
 
     fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
 
+    fn bit_capacity(&self) -> uint { full_bit_capacity::<Self>() }
+
     /* This is a workaround pattern taked from libstd/num/num.rs.
      * See rust ticket #8888; callers can use this convenience function:
 
-         bit_capacity::<T>()
+         full_bit_capacity::<T>()
      */
-    fn _bit_capacity(unused_self: Option<Self>) -> uint;
+    fn _full_bit_capacity(unused_self: Option<Self>) -> uint;
 }
 
-pub fn bit_capacity<T: BitFifoItem>() -> uint {
+pub fn full_bit_capacity<T: BitFifoItem>() -> uint {
     let x: Option<T> = None;
-    BitFifoItem::_bit_capacity(x)
+    BitFifoItem::_full_bit_capacity(x)
 }
 
 impl BitFifoItem for BitBucket {
@@ -124,13 +126,11 @@ impl BitFifoItem for BitBucket {
         }
     }
 
-    fn pop_from(fifo: &mut BitFifo, count: uint) -> BitBucket {
-        fifo.pop_bitbucket(count)
-    }
+    fn pop_from(fifo: &mut BitFifo, count: uint) -> BitBucket { fifo.pop_bitbucket(count) }
 
-    fn _bit_capacity(_: Option<BitBucket>) -> uint {
-        uint::bits
-    }
+    fn bit_capacity(&self) -> uint { self.count }
+
+    fn _full_bit_capacity(_: Option<BitBucket>) -> uint { uint::bits }
 }
 
 
@@ -209,7 +209,6 @@ mod tests {
             use std::uint;
             use BitFifo;
             use BitFifoItem;
-            use bit_capacity;
             use BitBucket;
 
             // datasets:
@@ -270,12 +269,12 @@ mod tests {
 
             fn push_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> uint {
                 fifo.push(x);
-                bit_capacity::<T>()
+                x.bit_capacity()
             }
 
-            fn pop_item<T: BitFifoItem>(fifo: &mut BitFifo, _: &T) -> (T, uint) {
+            fn pop_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
                 let out = fifo.pop();
-                (out, bit_capacity::<T>())
+                (out, x.bit_capacity())
             }
 
             fn test_fill_drain<T: Eq>(xs: &[T],
