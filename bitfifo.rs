@@ -17,7 +17,7 @@ macro_rules! assert_le (
             let bigger_val = $bigger;
             // check both directions of equality....
             if (smaller_val > bigger_val) {
-                fail!("assertion failed: (smaller: `%?` <= bigger: `%?`)", smaller_val, bigger_val);
+                fail!("assertion failed: (%? <= %?)", smaller_val, bigger_val);
             }
         }
     )
