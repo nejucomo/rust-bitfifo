@@ -286,8 +286,9 @@ mod tests {
             }
 
             fn pop_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
-                let out = fifo.pop();
-                (out, x.bit_capacity())
+                let count = x.bit_capacity();
+                let out = fifo.pop_bits(count);
+                (out, count)
             }
 
             fn test_fill_drain<T: Eq>(xs: &[T],
