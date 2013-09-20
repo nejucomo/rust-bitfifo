@@ -10,6 +10,20 @@ use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 
 
+macro_rules! assert_le (
+    ($smaller:expr , $bigger:expr) => (
+        {
+            let smaller_val = $smaller;
+            let bigger_val = $bigger;
+            // check both directions of equality....
+            if (smaller_val > bigger_val) {
+                fail!("assertion failed: (smaller: `%?` <= bigger: `%?`)", smaller_val, bigger_val);
+            }
+        }
+    )
+)
+
+
 struct BitFifo {
     queue: RingBuf<uint>,
     incoming: BitBucket,
@@ -49,7 +63,7 @@ impl BitFifo {
     // Concrete BitBucket push/pop:
     fn push_bitbucket(&mut self, source: &BitBucket) {
         let total = self.incoming.count + source.count;
-        assert!(total <= 2 * uint::bits);
+        assert_le!(total, 2 * uint::bits);
 
         if total > uint::bits {
             let mut incoming = source.clone();
@@ -68,8 +82,8 @@ impl BitFifo {
     }
 
     fn pop_bitbucket(&mut self, count: uint) -> BitBucket {
-        assert!(count <= uint::bits);
-        assert!(count <= self.count());
+        assert_le!(count, uint::bits);
+        assert_le!(count, self.count());
 
         if count > self.outgoing.count {
             let mut result = self.outgoing.clone();
@@ -84,8 +98,8 @@ impl BitFifo {
               }
             }
 
-            assert!(count <= self.outgoing.count + result.count);
-            assert!(count >= result.count);
+            assert_le!(count, self.outgoing.count + result.count);
+            assert_le!(result.count, count);
             result.shift_in(&self.outgoing.shift_out(safe_sub(count, result.count)));
 
             result
@@ -118,7 +132,7 @@ pub fn full_bit_capacity<T: BitFifoItem>() -> uint {
 
 impl BitFifoItem for BitBucket {
     fn push_into(&self, fifo: &mut BitFifo, count: uint) {
-        assert!(count <= self.count);
+        assert_le!(count, self.count);
         if (count < self.count) {
             fifo.push_bitbucket(&BitBucket { bits: self.bits, count: count });
         } else {
@@ -153,7 +167,7 @@ impl BitBucket {
 
     fn shift_in(&mut self, source: &BitBucket) {
         let total = self.count + source.count;
-        assert!(total <= uint::bits);
+        assert_le!(total, uint::bits);
         self.bits = (self.bits << source.count) | source.bits;
         self.count = total;
     }
@@ -163,7 +177,7 @@ impl BitBucket {
             return BitBucket::new();
         }
 
-        assert!(count <= self.count);
+        assert_le!(count, self.count);
 
         let keep = safe_sub(self.count, count);
         let result = BitBucket {
@@ -179,7 +193,7 @@ impl BitBucket {
 }
 
 fn safe_sub(a: uint, b: uint) -> uint {
-    assert!(a >= b);
+    assert_le!(b, a);
     a - b
 }
 
