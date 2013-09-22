@@ -1,11 +1,3 @@
-/* A fifo... of bits! */
-
-#[link(name = "bitfifo", vers = "0.1", author = "nejucomo@gmail.com")];
-#[crate_type = "lib"];
-extern mod std;
-extern mod extra;
-
-
 use std::uint;
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
@@ -13,25 +5,8 @@ use extra::container::Deque;
 // Local sub-modules:
 use bitfifoitem::{BitFifoItem, full_bit_capacity};
 use bitbucket::BitBucket;
+use safe_sub::safe_sub;
 
-
-// This is used in multiple files:
-macro_rules! assert_le (
-    ($smaller:expr , $bigger:expr) => (
-        {
-            let smaller_val = $smaller;
-            let bigger_val = $bigger;
-            if (smaller_val > bigger_val) {
-                fail!("assertion failed: (%? <= %?)", smaller_val, bigger_val);
-            }
-        }
-    )
-)
-
-
-pub mod bitfifoitem;
-pub mod bitbucket;
-#[cfg(test)] mod tests;
 
 
 struct BitFifo {
@@ -41,7 +16,7 @@ struct BitFifo {
 }
 
 impl BitFifo {
-    fn new() -> BitFifo {
+    pub fn new() -> BitFifo {
         BitFifo {
             queue: RingBuf::new(),
             incoming: BitBucket::new(),
@@ -49,29 +24,29 @@ impl BitFifo {
         }
     }
 
-    fn count(&self) -> uint {
+    pub fn count(&self) -> uint {
         self.incoming.count + self.outgoing.count + uint::bits * self.queue.len()
     }
 
     // Polymorphic push/pop:
-    fn push<T: BitFifoItem>(&mut self, source: &T) {
+    pub fn push<T: BitFifoItem>(&mut self, source: &T) {
         self.push_bits(source, source.bit_capacity());
     }
 
-    fn push_bits<T: BitFifoItem>(&mut self, source: &T, count: uint) {
+    pub fn push_bits<T: BitFifoItem>(&mut self, source: &T, count: uint) {
         source.push_into(self, count);
     }
 
-    fn pop<T: BitFifoItem>(&mut self) -> T {
+    pub fn pop<T: BitFifoItem>(&mut self) -> T {
         self.pop_bits(full_bit_capacity::<T>())
     }
 
-    fn pop_bits<T: BitFifoItem>(&mut self, count: uint) -> T {
+    pub fn pop_bits<T: BitFifoItem>(&mut self, count: uint) -> T {
         BitFifoItem::pop_from(self, count)
     }
 
     // Concrete BitBucket push/pop:
-    fn push_bitbucket(&mut self, source: &BitBucket) {
+    pub fn push_bitbucket(&mut self, source: &BitBucket) {
         let total = self.incoming.count + source.count;
         assert_le!(total, 2 * uint::bits);
 
@@ -91,7 +66,7 @@ impl BitFifo {
         }
     }
 
-    fn pop_bitbucket(&mut self, count: uint) -> BitBucket {
+    pub fn pop_bitbucket(&mut self, count: uint) -> BitBucket {
         assert_le!(count, uint::bits);
         assert_le!(count, self.count());
 
@@ -119,9 +94,3 @@ impl BitFifo {
         }
     }
 }
-
-pub fn safe_sub(a: uint, b: uint) -> uint {
-    assert_le!(b, a);
-    a - b
-}
-

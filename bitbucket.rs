@@ -1,6 +1,6 @@
 use std::uint;
 
-use safe_sub;
+use safe_sub::safe_sub;
 
 
 #[deriving(Clone)]
