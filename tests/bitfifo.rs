@@ -16,6 +16,9 @@ use self::utils::*;
 #[test] fn lockstep_byte_items     () { lockstep_items   (bb_bytes   ()) }
 #[test] fn lockstep_word_items     () { lockstep_items   (bb_words   ()) }
 
+#[test] fn fill_drain_uint_items () { fill_drain_items (uints ()) }
+#[test] fn lockstep_uint_items   () { lockstep_items   (uints ()) }
+
 
 mod utils {
     use std::uint;
@@ -46,6 +49,17 @@ mod utils {
 
         for i in range(0u, 2^16) {
             v.push(BitBucket { bits: word, count: uint::bits });
+            word = (word << 1) + i;
+        }
+        v
+    }
+
+    pub fn uints() -> ~[uint] {
+        let mut v = ~[];
+        let mut word = 0x123456789abcdef0; // BUG: assumes 64 bit uint.
+
+        for i in range(0u, 2^16) {
+            v.push(i);
             word = (word << 1) + i;
         }
         v

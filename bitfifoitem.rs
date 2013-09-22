@@ -25,6 +25,8 @@ pub fn full_bit_capacity<T: BitFifoItem>() -> uint {
     BitFifoItem::_full_bit_capacity(x)
 }
 
+
+// Implementations:
 impl BitFifoItem for BitBucket {
     fn push_into(&self, fifo: &mut BitFifo, count: uint) {
         assert_le!(count, self.count);
@@ -40,4 +42,21 @@ impl BitFifoItem for BitBucket {
     fn bit_capacity(&self) -> uint { self.count }
 
     fn _full_bit_capacity(_: Option<BitBucket>) -> uint { uint::bits }
+}
+
+
+impl BitFifoItem for uint {
+    fn push_into(&self, fifo: &mut BitFifo, count: uint) {
+        assert_le!(count, uint::bits);
+        fifo.push_bitbucket(&BitBucket { bits: *self, count: count });
+    }
+
+    fn pop_from(fifo: &mut BitFifo, count: uint) -> uint {
+        let bucket = fifo.pop_bitbucket(count);
+        bucket.bits
+    }
+
+    fn bit_capacity(&self) -> uint { uint::bits }
+
+    fn _full_bit_capacity(_: Option<uint>) -> uint { uint::bits }
 }
