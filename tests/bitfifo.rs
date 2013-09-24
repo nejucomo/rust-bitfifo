@@ -17,7 +17,16 @@ use self::utils::*;
 #[test] fn lockstep_word_items     () { lockstep_items   (bb_words   ()) }
 
 #[test] fn fill_drain_uint_items () { fill_drain_items (uints ()) }
-#[test] fn lockstep_uint_items   () { lockstep_items   (uints ()) }
+#[test] fn fill_drain_u64_items  () { fill_drain_items (u64s  ()) }
+#[test] fn fill_drain_u32_items  () { fill_drain_items (u32s  ()) }
+#[test] fn fill_drain_u16_items  () { fill_drain_items (u16s  ()) }
+#[test] fn fill_drain_u8_items   () { fill_drain_items (u8s   ()) }
+
+#[test] fn lockstep_uint_items () { lockstep_items (uints ()) }
+#[test] fn lockstep_u64_items  () { lockstep_items (u64s  ()) }
+#[test] fn lockstep_u32_items  () { lockstep_items (u32s  ()) }
+#[test] fn lockstep_u16_items  () { lockstep_items (u16s  ()) }
+#[test] fn lockstep_u8_items   () { lockstep_items (u8s   ()) }
 
 
 mod utils {
@@ -54,16 +63,26 @@ mod utils {
         v
     }
 
-    pub fn uints() -> ~[uint] {
-        let mut v = ~[];
-        let mut word = 0x123456789abcdef0; // BUG: assumes 64 bit uint.
+    macro_rules! uint_data_generator(
+        ($genname:ident, $T:ty) => (
+            pub fn $genname() -> ~[$T] {
+                let mut v = ~[];
+                let mut word = 0x123456789abcdef0;
 
-        for i in range(0u, 2^16) {
-            v.push(i);
-            word = (word << 1) + i;
-        }
-        v
-    }
+                for i in range(0u, 2^16) {
+                    v.push(word as $T);
+                    word = (word << 1) + i;
+                }
+                v
+            }
+        )
+    )
+
+    uint_data_generator!(uints, uint)
+    uint_data_generator!(u64s, u64)
+    uint_data_generator!(u32s, u32)
+    uint_data_generator!(u16s, u16)
+    uint_data_generator!(u8s, u8)
 
     // Test implementations, given a dataset:
     pub fn fill_drain_bb(bs: &[BitBucket]) {

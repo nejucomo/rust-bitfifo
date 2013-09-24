@@ -1,4 +1,4 @@
-use std::uint;
+use std::{uint, u64, u32, u16, u8};
 
 
 use BitFifo;
@@ -45,18 +45,29 @@ impl BitFifoItem for BitBucket {
 }
 
 
-impl BitFifoItem for uint {
-    fn push_into(&self, fifo: &mut BitFifo, count: uint) {
-        assert_le!(count, uint::bits);
-        fifo.push_bitbucket(&BitBucket { bits: *self, count: count });
-    }
+macro_rules! ui_impl (
+    ($T:ty, $bits:expr) => (
+        impl BitFifoItem for $T {
+            fn push_into(&self, fifo: &mut BitFifo, count: uint) {
+                assert_le!(count, $bits);
+                fifo.push_bitbucket(&BitBucket { bits: *self as uint, count: count });
+            }
 
-    fn pop_from(fifo: &mut BitFifo, count: uint) -> uint {
-        let bucket = fifo.pop_bitbucket(count);
-        bucket.bits
-    }
+            fn pop_from(fifo: &mut BitFifo, count: uint) -> $T {
+                let bucket = fifo.pop_bitbucket(count);
+                bucket.bits as $T
+            }
 
-    fn bit_capacity(&self) -> uint { uint::bits }
+            fn bit_capacity(&self) -> uint { $bits }
 
-    fn _full_bit_capacity(_: Option<uint>) -> uint { uint::bits }
-}
+            fn _full_bit_capacity(_: Option<$T>) -> uint { $bits }
+        }
+    )
+)
+
+
+ui_impl!(uint, uint::bits)
+ui_impl!(u64, u64::bits)
+ui_impl!(u32, u32::bits)
+ui_impl!(u16, u16::bits)
+ui_impl!(u8, u8::bits)
