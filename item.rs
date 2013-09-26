@@ -74,6 +74,61 @@ ui_impl!(u16, u16::bits)
 ui_impl!(u8, u8::bits)
 
 
+// Vectors:
+impl<T: Item> Item for ~[T] {
+    fn push_into(&self, fifo: &mut BitFifo, limit: Option<uint>) {
+        let mut remaining = limit;
+
+        let limit_reached = || {
+            match remaining {
+                None => false,
+                Some(c) => c == 0
+            }
+        };
+
+        for x in self.iter() {
+            if limit_reached() {
+                break;
+            }
+
+            let sublimit = get_push_limit(x, remaining);
+            x.push_into(fifo, Some(sublimit));
+
+            remaining = remaining.map( |l| l - sublimit );
+        }
+    }
+
+    fn pop_from(fifo: &mut BitFifo, limit: Option<uint>) -> ~[T] {
+        let mut remaining = limit;
+
+        let limit_reached = || {
+            match remaining {
+                None => false,
+                Some(c) => c == 0
+            }
+        };
+
+        let mut result = ~[];
+
+        while fifo.count() > 0 && !limit_reached() {
+            let sublimit = get_pop_limit::<T>(fifo, remaining);
+            result.push(Item::pop_from(fifo, Some(sublimit)));
+            remaining = remaining.map( |l| l - sublimit );
+        }
+
+        result
+    }
+
+    fn bit_count(&self) -> uint {
+        self.iter().fold( 0, |sum, x| sum + x.bit_count() )
+    }
+
+    fn bit_capacity(_: Option<~[T]>) -> Option<uint> {
+        None
+    }
+}
+
+
 // Internal utilities:
 fn get_push_limit<T: Item>(item: &T, limit: Option<uint>) -> uint {
     opt_min(item.bit_count(), limit)
