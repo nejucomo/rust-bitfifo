@@ -7,7 +7,7 @@ extern mod extra;
 
 
 pub use bitfifo::BitFifo;
-pub use item::{Item, full_bit_capacity};
+pub use item::Item;
 pub use bitbucket::BitBucket;
 
 

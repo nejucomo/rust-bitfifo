@@ -113,13 +113,13 @@ mod utils {
     }
 
     fn push_item<T: Item>(fifo: &mut BitFifo, x: &T) -> uint {
-        fifo.push(x);
-        x.bit_capacity()
+        fifo.push(x, None);
+        x.bit_count()
     }
 
     fn pop_item<T: Item>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
-        let count = x.bit_capacity();
-        let out = fifo.pop_bits(count);
+        let count = x.bit_count();
+        let out = fifo.pop(Some(count));
         (out, count)
     }
 

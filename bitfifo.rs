@@ -3,7 +3,7 @@ use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 
 // Local sub-modules:
-use item::{Item, full_bit_capacity};
+use item::Item;
 use bitbucket::BitBucket;
 
 
@@ -28,19 +28,11 @@ impl BitFifo {
     }
 
     // Polymorphic push/pop:
-    pub fn push<T: Item>(&mut self, source: &T) {
-        self.push_bits(source, source.bit_capacity());
-    }
-
-    pub fn push_bits<T: Item>(&mut self, source: &T, count: uint) {
+    pub fn push<T: Item>(&mut self, source: &T, count: Option<uint>) {
         source.push_into(self, count);
     }
 
-    pub fn pop<T: Item>(&mut self) -> T {
-        self.pop_bits(full_bit_capacity::<T>())
-    }
-
-    pub fn pop_bits<T: Item>(&mut self, count: uint) -> T {
+    pub fn pop<T: Item>(&mut self, count: Option<uint>) -> T {
         Item::pop_from(self, count)
     }
 

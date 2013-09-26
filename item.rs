@@ -6,61 +6,61 @@ use bitbucket::BitBucket;
 
 
 pub trait Item : Eq {
-    fn push_into(&self, fifo: &mut BitFifo, count: uint);
-
-    fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
-
-    fn bit_capacity(&self) -> uint { full_bit_capacity::<Self>() }
-
-    /* This is a workaround pattern taked from libstd/num/num.rs.
-     * See rust ticket #8888; callers can use this convenience function:
-
-         full_bit_capacity::<T>()
+    /* Push this item into fifo.  If count is None, push all bits in
+     * this item, else it should be Some(c) where c is less than or equal
+     * to the number of bits in this item.
      */
-    fn _full_bit_capacity(unused_self: Option<Self>) -> uint;
-}
+    fn push_into(&self, fifo: &mut BitFifo, count: Option<uint>);
 
-pub fn full_bit_capacity<T: Item>() -> uint {
-    let x: Option<T> = None;
-    Item::_full_bit_capacity(x)
+    /* Pop an item from a fifo; if count is None pop as many bits as
+     * can fit in an item of this type.  If count is Some(c), then the
+     * caller must ensure c is less than full capacity.
+     */
+    fn pop_from(fifo: &mut BitFifo, count: Option<uint>) -> Self;
+
+    // How many bits are in this Item?
+    fn bit_count(&self) -> uint { 0 }
 }
 
 
 // Implementations:
 impl Item for BitBucket {
-    fn push_into(&self, fifo: &mut BitFifo, count: uint) {
-        assert_le!(count, self.count);
-        if (count < self.count) {
-            fifo.push_bitbucket(&BitBucket { bits: self.bits, count: count });
+    fn push_into(&self, fifo: &mut BitFifo, count: Option<uint>) {
+        let c = match count { None => self.count, Some(c) => c };
+
+        assert_le!(c, self.count);
+
+        if (c < self.count) {
+            fifo.push_bitbucket(&BitBucket { bits: self.bits, count: c });
         } else {
             fifo.push_bitbucket(self);
         }
     }
 
-    fn pop_from(fifo: &mut BitFifo, count: uint) -> BitBucket { fifo.pop_bitbucket(count) }
+    fn pop_from(fifo: &mut BitFifo, count: Option<uint>) -> BitBucket {
+        let c = match count { None => uint::bits, Some(c) => c };
+        fifo.pop_bitbucket(c)
+    }
 
-    fn bit_capacity(&self) -> uint { self.count }
-
-    fn _full_bit_capacity(_: Option<BitBucket>) -> uint { uint::bits }
+    fn bit_count(&self) -> uint { self.count }
 }
 
 
 macro_rules! ui_impl (
     ($T:ty, $bits:expr) => (
         impl Item for $T {
-            fn push_into(&self, fifo: &mut BitFifo, count: uint) {
-                assert_le!(count, $bits);
-                fifo.push_bitbucket(&BitBucket { bits: *self as uint, count: count });
+            fn push_into(&self, fifo: &mut BitFifo, count: Option<uint>) {
+                let c = match count { None => $bits, Some(c) => c };
+                assert_le!(c, $bits);
+                fifo.push_bitbucket(&BitBucket { bits: *self as uint, count: c });
             }
 
-            fn pop_from(fifo: &mut BitFifo, count: uint) -> $T {
-                let bucket = fifo.pop_bitbucket(count);
+            fn pop_from(fifo: &mut BitFifo, count: Option<uint>) -> $T {
+                let bucket: BitBucket = fifo.pop(count);
                 bucket.bits as $T
             }
 
-            fn bit_capacity(&self) -> uint { $bits }
-
-            fn _full_bit_capacity(_: Option<$T>) -> uint { $bits }
+            fn bit_count(&self) -> uint { $bits }
         }
     )
 )
