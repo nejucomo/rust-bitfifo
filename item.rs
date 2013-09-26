@@ -5,7 +5,7 @@ use BitFifo;
 use bitbucket::BitBucket;
 
 
-pub trait BitFifoItem : Eq {
+pub trait Item : Eq {
     fn push_into(&self, fifo: &mut BitFifo, count: uint);
 
     fn pop_from(fifo: &mut BitFifo, count: uint) -> Self;
@@ -20,14 +20,14 @@ pub trait BitFifoItem : Eq {
     fn _full_bit_capacity(unused_self: Option<Self>) -> uint;
 }
 
-pub fn full_bit_capacity<T: BitFifoItem>() -> uint {
+pub fn full_bit_capacity<T: Item>() -> uint {
     let x: Option<T> = None;
-    BitFifoItem::_full_bit_capacity(x)
+    Item::_full_bit_capacity(x)
 }
 
 
 // Implementations:
-impl BitFifoItem for BitBucket {
+impl Item for BitBucket {
     fn push_into(&self, fifo: &mut BitFifo, count: uint) {
         assert_le!(count, self.count);
         if (count < self.count) {
@@ -47,7 +47,7 @@ impl BitFifoItem for BitBucket {
 
 macro_rules! ui_impl (
     ($T:ty, $bits:expr) => (
-        impl BitFifoItem for $T {
+        impl Item for $T {
             fn push_into(&self, fifo: &mut BitFifo, count: uint) {
                 assert_le!(count, $bits);
                 fifo.push_bitbucket(&BitBucket { bits: *self as uint, count: count });

@@ -7,7 +7,7 @@ extern mod extra;
 
 
 pub use bitfifo::BitFifo;
-pub use bitfifoitem::{BitFifoItem, full_bit_capacity};
+pub use item::{Item, full_bit_capacity};
 pub use bitbucket::BitBucket;
 
 
@@ -26,7 +26,7 @@ macro_rules! assert_le (
 
 
 mod bitfifo;
-mod bitfifoitem;
+mod item;
 mod bitbucket;
 
 #[cfg(test)] mod tests;

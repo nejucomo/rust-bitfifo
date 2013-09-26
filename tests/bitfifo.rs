@@ -32,7 +32,7 @@ use self::utils::*;
 mod utils {
     use std::uint;
     use BitFifo;
-    use bitfifoitem::BitFifoItem;
+    use item::Item;
     use bitbucket::BitBucket;
 
     // datasets:
@@ -93,11 +93,11 @@ mod utils {
         test_lockstep(bs, push_bb, pop_bb)
     }
 
-    pub fn fill_drain_items<T: BitFifoItem>(xs: &[T]) {
+    pub fn fill_drain_items<T: Item>(xs: &[T]) {
         test_fill_drain(xs, push_item, pop_item)
     }
 
-    pub fn lockstep_items<T: BitFifoItem>(xs: &[T]) {
+    pub fn lockstep_items<T: Item>(xs: &[T]) {
         test_lockstep(xs, push_item, pop_item)
     }
 
@@ -112,12 +112,12 @@ mod utils {
         (out, b.count)
     }
 
-    fn push_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> uint {
+    fn push_item<T: Item>(fifo: &mut BitFifo, x: &T) -> uint {
         fifo.push(x);
         x.bit_capacity()
     }
 
-    fn pop_item<T: BitFifoItem>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
+    fn pop_item<T: Item>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
         let count = x.bit_capacity();
         let out = fifo.pop_bits(count);
         (out, count)
