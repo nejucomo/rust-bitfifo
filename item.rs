@@ -19,7 +19,7 @@ pub trait Item : Eq {
     fn pop_from(fifo: &mut BitFifo, count: Option<uint>) -> Self;
 
     // How many bits are in this Item?
-    fn bit_count(&self) -> uint { 0 }
+    fn bit_count(&self) -> uint;
 }
 
 
