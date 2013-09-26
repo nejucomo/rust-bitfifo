@@ -1,11 +1,13 @@
 use std::uint;
 
+use BitCount;
+
 
 #[deriving(Clone)]
 #[deriving(Eq)]
 pub struct BitBucket {
     bits: uint,
-    count: uint
+    count: BitCount
 }
 
 impl BitBucket {
@@ -20,7 +22,7 @@ impl BitBucket {
         self.count = total;
     }
 
-    pub fn shift_out(&mut self, count: uint) -> BitBucket {
+    pub fn shift_out(&mut self, count: BitCount) -> BitBucket {
         if (count == 0u) {
             return BitBucket::new();
         }

@@ -11,7 +11,7 @@ pub use item::Item;
 pub use bitbucket::BitBucket;
 
 
-// This is used in multiple files:
+// These basic items/macros are used in multiple files:
 macro_rules! assert_le (
     ($smaller:expr , $bigger:expr) => (
         {
@@ -23,6 +23,8 @@ macro_rules! assert_le (
         }
     )
 )
+
+pub type BitCount = uint;
 
 
 mod bitfifo;
