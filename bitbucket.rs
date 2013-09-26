@@ -9,11 +9,6 @@ pub struct BitBucket {
 }
 
 impl BitBucket {
-    pub fn empty() -> &'static BitBucket {
-        static x: BitBucket = BitBucket { bits: 0, count: 0 };
-        &x
-    }
-
     pub fn new() -> BitBucket {
         BitBucket { bits: 0, count: 0 }
     }

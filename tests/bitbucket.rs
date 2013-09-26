@@ -7,7 +7,7 @@ fn shift_out_0() {
 
     let src = BitBucket { bits: 0x0123456789abcdef, count: uint::bits };
     let mut bb = src.clone();
-    assert_eq!(*BitBucket::empty(), bb.shift_out(0));
+    assert_eq!(BitBucket::new(), bb.shift_out(0));
     assert_eq!(src, bb);
 }
 
@@ -48,7 +48,7 @@ mod utils {
     pub fn shift_out_all(src: &mut BitBucket) {
         let out = src.shift_out(full.count);
         assert_eq!(out, full);
-        assert_eq!(*src, *BitBucket::empty());
+        assert_eq!(*src, BitBucket::new());
     }
 
     pub fn shift_out_chunked(src: &mut BitBucket) {
