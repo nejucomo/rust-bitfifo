@@ -23,18 +23,21 @@ use self::utils::*;
 #[test] fn fill_drain_u32_items  () { fill_drain_items (u32s  ()) }
 #[test] fn fill_drain_u16_items  () { fill_drain_items (u16s  ()) }
 #[test] fn fill_drain_u8_items   () { fill_drain_items (u8s   ()) }
+#[test] fn fill_drain_bool_items () { fill_drain_items (bools ()) }
 
 #[test] fn lockstep_uint_items () { lockstep_items (uints ()) }
 #[test] fn lockstep_u64_items  () { lockstep_items (u64s  ()) }
 #[test] fn lockstep_u32_items  () { lockstep_items (u32s  ()) }
 #[test] fn lockstep_u16_items  () { lockstep_items (u16s  ()) }
 #[test] fn lockstep_u8_items   () { lockstep_items (u8s   ()) }
+#[test] fn lockstep_bool_items () { lockstep_items (bools ()) }
 
 #[test] fn push_pop_uint_vec () { push_pop_vec (uints ()) }
 #[test] fn push_pop_u64_vec  () { push_pop_vec (u64s  ()) }
 #[test] fn push_pop_u32_vec  () { push_pop_vec (u32s  ()) }
 #[test] fn push_pop_u16_vec  () { push_pop_vec (u16s  ()) }
 #[test] fn push_pop_u8_vec   () { push_pop_vec (u8s   ()) }
+#[test] fn push_pop_bool_vec () { push_pop_vec (bools ()) }
 
 
 mod utils {
@@ -71,6 +74,9 @@ mod utils {
         }
         v
     }
+
+    pub fn bools() -> ~[bool] { ~[false, true] }
+
 
     macro_rules! uint_data_generator(
         ($genname:ident, $T:ty) => (

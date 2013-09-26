@@ -45,6 +45,32 @@ impl Item for BitBucket {
 }
 
 
+impl Item for bool {
+    fn push_into(&self, fifo: &mut BitFifo, limit: Option<BitCount>) {
+        fifo.push_bitbucket(
+            &BitBucket {
+                bits: match *self { false => 0, true => 1 },
+                count: get_push_limit(self, limit)
+            });
+    }
+
+    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (bool, BitCount) {
+        let c = get_pop_limit::<BitBucket>(fifo, limit);
+        let bb = fifo.pop_bitbucket(c);
+        let result = match bb.bits {
+            0u => false,
+            1u => true,
+            _ => fail!("Invalid boolean bit pattern: %x", bb.bits)
+        };
+        (result, bb.count)
+    }
+
+    fn bit_count(&self) -> BitCount { 1u }
+
+    fn bit_capacity(_: Option<bool>) -> Option<BitCount> { Some(1u) }
+}
+
+
 macro_rules! ui_impl (
     ($T:ty, $bits:expr) => (
         impl Item for $T {
