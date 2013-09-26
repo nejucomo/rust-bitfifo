@@ -16,8 +16,6 @@ use self::utils::*;
 #[test] fn lockstep_nibble_items   () { lockstep_items   (bb_nibbles ()) }
 #[test] fn lockstep_byte_items     () { lockstep_items   (bb_bytes   ()) }
 #[test] fn lockstep_word_items     () { lockstep_items   (bb_words   ()) }
-#[test] fn push_pop_bb_nibble_vec  () { push_pop_vec     (bb_nibbles ()) }
-#[test] fn push_pop_bb_byte_vec    () { push_pop_vec     (bb_bytes   ()) }
 #[test] fn push_pop_bb_word_vec    () { push_pop_vec     (bb_words   ()) }
 
 #[test] fn fill_drain_uint_items () { fill_drain_items (uints ()) }
