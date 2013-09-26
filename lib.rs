@@ -28,6 +28,5 @@ macro_rules! assert_le (
 mod bitfifo;
 mod bitfifoitem;
 mod bitbucket;
-mod safe_sub;
 
 #[cfg(test)] mod tests;

@@ -5,7 +5,6 @@ use extra::container::Deque;
 // Local sub-modules:
 use bitfifoitem::{BitFifoItem, full_bit_capacity};
 use bitbucket::BitBucket;
-use safe_sub::safe_sub;
 
 
 
@@ -55,7 +54,7 @@ impl BitFifo {
 
             let mut overflow = BitBucket::new();
             overflow.shift_in(&self.incoming);
-            overflow.shift_in(&incoming.shift_out(safe_sub(uint::bits, self.incoming.count)));
+            overflow.shift_in(&incoming.shift_out((uint::bits).checked_sub(&self.incoming.count).unwrap()));
             assert_eq!(overflow.count, uint::bits);
             self.queue.push_back(overflow.bits);
 
@@ -85,7 +84,8 @@ impl BitFifo {
 
             assert_le!(count, self.outgoing.count + result.count);
             assert_le!(result.count, count);
-            result.shift_in(&self.outgoing.shift_out(safe_sub(count, result.count)));
+            let outcount = count.checked_sub(&result.count).unwrap();
+            result.shift_in(&self.outgoing.shift_out(outcount));
 
             result
 

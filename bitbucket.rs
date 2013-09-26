@@ -1,7 +1,5 @@
 use std::uint;
 
-use safe_sub::safe_sub;
-
 
 #[deriving(Clone)]
 #[deriving(Eq)]
@@ -34,13 +32,13 @@ impl BitBucket {
 
         assert_le!(count, self.count);
 
-        let keep = safe_sub(self.count, count);
+        let keep = self.count.checked_sub(&count).unwrap();
         let result = BitBucket {
             bits: self.bits >> keep,
             count: count
         };
 
-        self.bits = self.bits & safe_sub(1 << keep, 1);
+        self.bits = self.bits & (1u << keep).checked_sub(&1u).unwrap();
         self.count = keep;
 
         result
