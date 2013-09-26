@@ -29,12 +29,12 @@ impl BitFifo {
     }
 
     // Polymorphic push/pop:
-    pub fn push<T: Item>(&mut self, source: &T, count: Option<BitCount>) {
-        source.push_into(self, count);
+    pub fn push<T: Item>(&mut self, source: &T, limit: Option<BitCount>) {
+        source.push_into(self, limit);
     }
 
-    pub fn pop<T: Item>(&mut self, count: Option<BitCount>) -> T {
-        Item::pop_from(self, count)
+    pub fn pop<T: Item>(&mut self, limit: Option<BitCount>) -> (T, BitCount) {
+        Item::pop_from(self, limit)
     }
 
     // Concrete BitBucket push/pop:

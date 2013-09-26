@@ -9,7 +9,7 @@ use bitbucket::BitBucket;
 pub trait Item : Eq {
     fn push_into(&self, fifo: &mut BitFifo, limit: Option<BitCount>);
 
-    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> Self;
+    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (Self, BitCount);
 
     fn bit_count(&self) -> BitCount;
 
@@ -33,9 +33,10 @@ impl Item for BitBucket {
             });
     }
 
-    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> BitBucket {
+    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (BitBucket, BitCount) {
         let c = get_pop_limit::<BitBucket>(fifo, limit);
-        fifo.pop_bitbucket(c)
+        let result = fifo.pop_bitbucket(c);
+        (result, result.count)
     }
 
     fn bit_count(&self) -> BitCount { self.count }
@@ -55,9 +56,10 @@ macro_rules! ui_impl (
                     });
             }
 
-            fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> $T {
-                let bucket: BitBucket = fifo.pop(limit);
-                bucket.bits as $T
+            fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> ($T, BitCount) {
+                let count = get_pop_limit::<$T>(fifo, limit);
+                let bucket = fifo.pop_bitbucket(count);
+                (bucket.bits as $T, bucket.count)
             }
 
             fn bit_count(&self) -> BitCount { $bits }
@@ -99,8 +101,9 @@ impl<T: Item> Item for ~[T] {
         }
     }
 
-    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> ~[T] {
+    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (~[T], BitCount) {
         let mut remaining = limit;
+        let mut count = 0;
 
         let limit_reached = || {
             match remaining {
@@ -113,11 +116,13 @@ impl<T: Item> Item for ~[T] {
 
         while fifo.count() > 0 && !limit_reached() {
             let sublimit = get_pop_limit::<T>(fifo, remaining);
-            result.push(Item::pop_from(fifo, Some(sublimit)));
-            remaining = remaining.map( |l| l - sublimit );
+            let (elem, subcount) = Item::pop_from(fifo, Some(sublimit));
+            result.push(elem);
+            remaining = remaining.map( |l| l - subcount );
+            count += subcount
         }
 
-        result
+        (result, count)
     }
 
     fn bit_count(&self) -> BitCount {

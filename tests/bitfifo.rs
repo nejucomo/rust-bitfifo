@@ -39,6 +39,7 @@ use self::utils::*;
 
 mod utils {
     use std::uint;
+    use BitCount;
     use BitFifo;
     use item::Item;
     use bitbucket::BitBucket;
@@ -110,38 +111,41 @@ mod utils {
     }
 
     pub fn push_pop_vec<T: Item>(xs: ~[T]) {
+        let xcount = xs.bit_count();
         let mut fifo = BitFifo::new();
         fifo.push(&xs, None);
-        assert_eq!(fifo.count(), xs.bit_count());
-        let ys = fifo.pop(None);
+        assert_eq!(fifo.count(), xcount);
+        let (ys, count) = fifo.pop(None);
         assert_eq!(xs, ys);
+        assert_eq!(xcount, count);
     }
 
     // Private:
-    fn push_bb(fifo: &mut BitFifo, b: &BitBucket) -> uint {
+    fn push_bb(fifo: &mut BitFifo, b: &BitBucket) -> BitCount {
         fifo.push_bitbucket(b);
         b.count
     }
 
-    fn pop_bb(fifo: &mut BitFifo, b: &BitBucket) -> (BitBucket, uint) {
+    fn pop_bb(fifo: &mut BitFifo, b: &BitBucket) -> (BitBucket, BitCount) {
         let out = fifo.pop_bitbucket(b.count);
         (out, b.count)
     }
 
-    fn push_item<T: Item>(fifo: &mut BitFifo, x: &T) -> uint {
+    fn push_item<T: Item>(fifo: &mut BitFifo, x: &T) -> BitCount {
         fifo.push(x, None);
         x.bit_count()
     }
 
-    fn pop_item<T: Item>(fifo: &mut BitFifo, x: &T) -> (T, uint) {
-        let count = x.bit_count();
-        let out = fifo.pop(Some(count));
-        (out, count)
+    fn pop_item<T: Item>(fifo: &mut BitFifo, x: &T) -> (T, BitCount) {
+        let incount = x.bit_count();
+        let (out, outcount) = fifo.pop(Some(incount));
+        assert_eq!(incount, outcount);
+        (out, outcount)
     }
 
     fn test_fill_drain<T: Eq>(xs: &[T],
-                              push: &fn(&mut BitFifo, &T) -> uint,
-                              pop: &fn(&mut BitFifo, &T) -> (T, uint))
+                              push: &fn(&mut BitFifo, &T) -> BitCount,
+                              pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
     {
         let mut fifo = BitFifo::new();
         let mut count = 0;
@@ -163,8 +167,8 @@ mod utils {
     }
 
     fn test_lockstep<T: Eq>(xs: &[T],
-                            push: &fn(&mut BitFifo, &T) -> uint,
-                            pop: &fn(&mut BitFifo, &T) -> (T, uint))
+                            push: &fn(&mut BitFifo, &T) -> BitCount,
+                            pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
     {
         let mut fifo = BitFifo::new();
 
