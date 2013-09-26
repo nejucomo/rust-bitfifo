@@ -1,6 +1,26 @@
 use self::utils::*;
 
 
+// High-level tests:
+#[test]
+fn gather_bytes_into_u32() {
+    use BitCount;
+    use BitFifo;
+
+    let mut fifo = BitFifo::new();
+
+    fifo.push(&0xABu8, None);
+    fifo.push(&0xCDu8, None);
+    fifo.push(&0xEFu8, None);
+    fifo.push(&0x89u8, None);
+
+    let (x, count): (u32, BitCount) = fifo.pop(None);
+
+    assert_eq!(count, 32);
+    assert_eq!(x, 0xABCDEF89u32);
+}
+
+
 // BitBucket push/pop tests:
 #[test] fn fill_drain_bb_nibbles () { fill_drain_bb (bb_nibbles ()) }
 #[test] fn fill_drain_bb_bytes   () { fill_drain_bb (bb_bytes   ()) }
