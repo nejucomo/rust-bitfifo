@@ -50,6 +50,24 @@ mod highlevel {
         assert_eq!(dcnt, 8);
         assert_eq!(d, 0x89u8);
     }
+
+    #[test]
+    fn the_answer_in_bools() {
+        use BitCount;
+        use BitFifo;
+
+        let mut fifo = BitFifo::new();
+
+        do 3.times {
+            fifo.push(&true, None);
+            fifo.push(&false, None);
+        }
+
+        let (answer, count): (uint, BitCount) = fifo.pop(None);
+
+        assert_eq!(answer, 42u);
+        assert_eq!(count, 6u);
+    }
 }
 
 
