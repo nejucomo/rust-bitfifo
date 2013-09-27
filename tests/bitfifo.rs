@@ -13,9 +13,11 @@ fn gather_bytes_into_u32() {
     fifo.push(&0xCDu8, None);
     fifo.push(&0xEFu8, None);
     fifo.push(&0x89u8, None);
+    assert_eq!(fifo.count(), 32);
 
     let (x, count): (u32, BitCount) = fifo.pop(None);
 
+    assert_eq!(fifo.count(), 0);
     assert_eq!(count, 32);
     assert_eq!(x, 0xABCDEF89u32);
 }
