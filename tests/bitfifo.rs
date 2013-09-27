@@ -1,96 +1,109 @@
-use self::utils::*;
-
-
 // High-level tests:
-#[test]
-fn gather_bytes_into_u32() {
-    use BitCount;
-    use BitFifo;
+mod highlevel {
+    #[test]
+    fn gather_bytes_into_u32() {
+        use BitCount;
+        use BitFifo;
 
-    let mut fifo = BitFifo::new();
+        let mut fifo = BitFifo::new();
 
-    fifo.push(&0xABu8, None);
-    fifo.push(&0xCDu8, None);
-    fifo.push(&0xEFu8, None);
-    fifo.push(&0x89u8, None);
-    assert_eq!(fifo.count(), 32);
+        fifo.push(&0xABu8, None);
+        fifo.push(&0xCDu8, None);
+        fifo.push(&0xEFu8, None);
+        fifo.push(&0x89u8, None);
+        assert_eq!(fifo.count(), 32);
 
-    let (x, count): (u32, BitCount) = fifo.pop(None);
+        let (x, count): (u32, BitCount) = fifo.pop(None);
 
-    assert_eq!(fifo.count(), 0);
-    assert_eq!(count, 32);
-    assert_eq!(x, 0xABCDEF89u32);
-}
+        assert_eq!(fifo.count(), 0);
+        assert_eq!(count, 32);
+        assert_eq!(x, 0xABCDEF89u32);
+    }
 
-#[test]
-fn split_u32_into_bytes() {
-    use BitCount;
-    use BitFifo;
+    #[test]
+    fn split_u32_into_bytes() {
+        use BitCount;
+        use BitFifo;
 
-    let mut fifo = BitFifo::new();
+        let mut fifo = BitFifo::new();
 
-    fifo.push(&0xABCDEF89u32, None);
-    assert_eq!(fifo.count(), 32);
+        fifo.push(&0xABCDEF89u32, None);
+        assert_eq!(fifo.count(), 32);
 
-    let (a, acnt): (u8, BitCount) = fifo.pop(None);
-    assert_eq!(fifo.count(), 24);
-    assert_eq!(acnt, 8);
-    assert_eq!(a, 0xABu8);
+        let (a, acnt): (u8, BitCount) = fifo.pop(None);
+        assert_eq!(fifo.count(), 24);
+        assert_eq!(acnt, 8);
+        assert_eq!(a, 0xABu8);
 
-    let (b, bcnt): (u8, BitCount) = fifo.pop(None);
-    assert_eq!(fifo.count(), 16);
-    assert_eq!(bcnt, 8);
-    assert_eq!(b, 0xCDu8);
+        let (b, bcnt): (u8, BitCount) = fifo.pop(None);
+        assert_eq!(fifo.count(), 16);
+        assert_eq!(bcnt, 8);
+        assert_eq!(b, 0xCDu8);
 
-    let (c, ccnt): (u8, BitCount) = fifo.pop(None);
-    assert_eq!(fifo.count(), 8);
-    assert_eq!(ccnt, 8);
-    assert_eq!(c, 0xEFu8);
+        let (c, ccnt): (u8, BitCount) = fifo.pop(None);
+        assert_eq!(fifo.count(), 8);
+        assert_eq!(ccnt, 8);
+        assert_eq!(c, 0xEFu8);
 
-    let (d, dcnt): (u8, BitCount) = fifo.pop(None);
-    assert_eq!(fifo.count(), 0);
-    assert_eq!(dcnt, 8);
-    assert_eq!(d, 0x89u8);
+        let (d, dcnt): (u8, BitCount) = fifo.pop(None);
+        assert_eq!(fifo.count(), 0);
+        assert_eq!(dcnt, 8);
+        assert_eq!(d, 0x89u8);
+    }
 }
 
 
 // BitBucket push/pop tests:
-#[test] fn fill_drain_bb_nibbles () { fill_drain_bb (bb_nibbles ()) }
-#[test] fn fill_drain_bb_bytes   () { fill_drain_bb (bb_bytes   ()) }
-#[test] fn fill_drain_bb_words   () { fill_drain_bb (bb_words   ()) }
-#[test] fn lockstep_bb_nibbles   () { lockstep_bb   (bb_nibbles ()) }
-#[test] fn lockstep_bb_bytes     () { lockstep_bb   (bb_bytes   ()) }
-#[test] fn lockstep_bb_words     () { lockstep_bb   (bb_words   ()) }
+mod bitbucket {
+    macro_rules! bitbucket_dataset_tests(
+        ($modname:ident +{ $datagen:expr }) => (
+            mod $modname {
+                use super::super::utils::*;
 
-// item push/pop tests:
-#[test] fn fill_drain_nibble_items () { fill_drain_items (bb_nibbles ()) }
-#[test] fn fill_drain_byte_items   () { fill_drain_items (bb_bytes   ()) }
-#[test] fn fill_drain_word_items   () { fill_drain_items (bb_words   ()) }
-#[test] fn lockstep_nibble_items   () { lockstep_items   (bb_nibbles ()) }
-#[test] fn lockstep_byte_items     () { lockstep_items   (bb_bytes   ()) }
-#[test] fn lockstep_word_items     () { lockstep_items   (bb_words   ()) }
-#[test] fn push_pop_bb_word_vec    () { push_pop_vec     (bb_words   ()) }
+                #[test] fn fill_drain () { fill_drain_bb ($datagen ()) }
+                #[test] fn lockstep   () { lockstep_bb   ($datagen ()) }
+            }
+        )
+    )
 
-#[test] fn fill_drain_uint_items () { fill_drain_items (uints ()) }
-#[test] fn fill_drain_u64_items  () { fill_drain_items (u64s  ()) }
-#[test] fn fill_drain_u32_items  () { fill_drain_items (u32s  ()) }
-#[test] fn fill_drain_u16_items  () { fill_drain_items (u16s  ()) }
-#[test] fn fill_drain_u8_items   () { fill_drain_items (u8s   ()) }
-#[test] fn fill_drain_bool_items () { fill_drain_items (bools ()) }
+    bitbucket_dataset_tests!(words   +{ bb_words   })
+    bitbucket_dataset_tests!(bytes   +{ bb_bytes   })
+    bitbucket_dataset_tests!(nibbles +{ bb_nibbles })
+}
 
-#[test] fn lockstep_uint_items () { lockstep_items (uints ()) }
-#[test] fn lockstep_u64_items  () { lockstep_items (u64s  ()) }
-#[test] fn lockstep_u32_items  () { lockstep_items (u32s  ()) }
-#[test] fn lockstep_u16_items  () { lockstep_items (u16s  ()) }
-#[test] fn lockstep_u8_items   () { lockstep_items (u8s   ()) }
-#[test] fn lockstep_bool_items () { lockstep_items (bools ()) }
+// item data-driven tests:
+mod item {
+    macro_rules! item_dataset_tests(
+        ($modname:ident +{ $datagen:expr }) => (
+            mod $modname {
+                use super::super::utils::*;
 
-#[test] fn push_pop_uint_vec () { push_pop_vec (uints ()) }
-#[test] fn push_pop_u64_vec  () { push_pop_vec (u64s  ()) }
-#[test] fn push_pop_u32_vec  () { push_pop_vec (u32s  ()) }
-#[test] fn push_pop_u16_vec  () { push_pop_vec (u16s  ()) }
-#[test] fn push_pop_u8_vec   () { push_pop_vec (u8s   ()) }
-#[test] fn push_pop_bool_vec () { push_pop_vec (bools ()) }
+                #[test] fn fill_drain() { fill_drain_items($datagen()) }
+                #[test] fn lockstep() { lockstep_items($datagen()) }
+                #[test] fn push_pop() { push_pop_vec($datagen()) }
+            }
+        );
+
+        ($modname:ident -{ $datagen:expr }) => (
+            mod $modname {
+                use super::super::utils::*;
+
+                #[test] fn fill_drain() { fill_drain_items($datagen()) }
+                #[test] fn lockstep() { lockstep_items($datagen()) }
+            }
+        )
+    )
+
+    item_dataset_tests!(bb_words   +{ bb_words   })
+    item_dataset_tests!(bb_bytes   -{ bb_bytes   })
+    item_dataset_tests!(bb_nibbles -{ bb_nibbles })
+    item_dataset_tests!(uint       +{ uints      })
+    item_dataset_tests!(u64        +{ u64s       })
+    item_dataset_tests!(u32        +{ u32s       })
+    item_dataset_tests!(u16        +{ u16s       })
+    item_dataset_tests!(u8         +{ u8s        })
+    item_dataset_tests!(bool       +{ bools      })
+}
 
 
 mod utils {
