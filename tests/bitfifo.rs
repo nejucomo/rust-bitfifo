@@ -22,6 +22,37 @@ fn gather_bytes_into_u32() {
     assert_eq!(x, 0xABCDEF89u32);
 }
 
+#[test]
+fn split_u32_into_bytes() {
+    use BitCount;
+    use BitFifo;
+
+    let mut fifo = BitFifo::new();
+
+    fifo.push(&0xABCDEF89u32, None);
+    assert_eq!(fifo.count(), 32);
+
+    let (a, acnt): (u8, BitCount) = fifo.pop(None);
+    assert_eq!(fifo.count(), 24);
+    assert_eq!(acnt, 8);
+    assert_eq!(a, 0xABu8);
+
+    let (b, bcnt): (u8, BitCount) = fifo.pop(None);
+    assert_eq!(fifo.count(), 16);
+    assert_eq!(bcnt, 8);
+    assert_eq!(b, 0xCDu8);
+
+    let (c, ccnt): (u8, BitCount) = fifo.pop(None);
+    assert_eq!(fifo.count(), 8);
+    assert_eq!(ccnt, 8);
+    assert_eq!(c, 0xEFu8);
+
+    let (d, dcnt): (u8, BitCount) = fifo.pop(None);
+    assert_eq!(fifo.count(), 0);
+    assert_eq!(dcnt, 8);
+    assert_eq!(d, 0x89u8);
+}
+
 
 // BitBucket push/pop tests:
 #[test] fn fill_drain_bb_nibbles () { fill_drain_bb (bb_nibbles ()) }
