@@ -1,13 +1,13 @@
 use self::utils::*;
 
 #[test]
-fn shift_out_0() {
+fn pop_bits_0() {
     use std::uint;
     use bitbucket::BitBucket;
 
     let src = BitBucket { bits: 0x0123456789abcdef, count: uint::bits };
     let mut bb = src.clone();
-    assert_eq!(BitBucket::new(), bb.shift_out(0));
+    assert_eq!(BitBucket::new(), bb.pop_bits(0));
     assert_eq!(src, bb);
 }
 
@@ -34,28 +34,34 @@ mod utils {
     }
 
     pub fn shift_in_all(dest: &mut BitBucket) {
-        dest.shift_in(full);
+        shift_in(dest, full);
         assert_eq!(*dest, full);
     }
 
     pub fn shift_in_chunked(dest: &mut BitBucket) {
         for c in chunks.iter() {
-            dest.shift_in(*c);
+            shift_in(dest, *c);
         }
         assert_eq!(*dest, full);
     }
 
     pub fn shift_out_all(src: &mut BitBucket) {
-        let out = src.shift_out(full.count);
+        let out = src.pop_bits(full.count);
         assert_eq!(out, full);
         assert_eq!(*src, BitBucket::new());
     }
 
     pub fn shift_out_chunked(src: &mut BitBucket) {
         for c in chunks.iter() {
-            let out = src.shift_out(c.count);
+            let out = src.pop_bits(c.count);
             assert_eq!(*c, out);
         }
+    }
+
+    fn shift_in(dest: &mut BitBucket, source: BitBucket) {
+        let (a, b) = dest.merge_left(source, dest.count + source.count);
+        assert_eq!(b, BitBucket::new());
+        *dest = a;
     }
 }
 

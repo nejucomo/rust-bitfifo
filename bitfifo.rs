@@ -58,19 +58,13 @@ impl BitFifo {
         let total = self.incoming.count + source.count;
         assert_le!(total, 2 * uint::bits);
 
-        if total > uint::bits {
-            let mut incoming = source.clone();
+        let (a, b) = self.incoming.merge_left(source, uint::bits);
 
-            let mut overflow = BitBucket::new();
-            overflow.shift_in(self.incoming);
-            overflow.shift_in(incoming.shift_out((uint::bits).checked_sub(&self.incoming.count).unwrap()));
-            assert_eq!(overflow.count, uint::bits);
-            self.queue.push_back(overflow.bits);
-
-            self.incoming = incoming;
-
+        if a.count == uint::bits {
+            self.queue.push_back(a.bits);
+            self.incoming = b;
         } else {
-            self.incoming.shift_in(source);
+            self.incoming = a;
         }
     }
 
@@ -78,28 +72,27 @@ impl BitFifo {
         assert_le!(count, uint::bits);
         assert_le!(count, self.count());
 
-        if count > self.outgoing.count {
-            let mut result = self.outgoing.clone();
+        if count <= self.outgoing.count {
+            self.outgoing.pop_bits(count)
+        } else {
+            let tmp = self.pop_internal_bitbucket();
+            let (a, b) = self.outgoing.merge_left(tmp, count);
+            self.outgoing = b;
+            a
+        }
+    }
 
-            match self.queue.pop_front() {
-              None => {
-                self.outgoing = self.incoming.clone();
+    fn pop_internal_bitbucket(&mut self) -> BitBucket {
+        match self.queue.pop_front() {
+            None => {
+                let result = self.incoming.clone();
                 self.incoming = BitBucket::new();
-              }
-              Some(bits) => {
-                self.outgoing = BitBucket { bits: bits, count: uint::bits }
-              }
+                result
             }
 
-            assert_le!(count, self.outgoing.count + result.count);
-            assert_le!(result.count, count);
-            let outcount = count.checked_sub(&result.count).unwrap();
-            result.shift_in(self.outgoing.shift_out(outcount));
-
-            result
-
-        } else {
-            self.outgoing.shift_out(count)
+            Some(bits) => {
+                BitBucket { bits: bits, count: uint::bits }
+            }
         }
     }
 }
