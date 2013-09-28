@@ -34,13 +34,13 @@ mod utils {
     }
 
     pub fn shift_in_all(dest: &mut BitBucket) {
-        dest.shift_in(&full);
+        dest.shift_in(full);
         assert_eq!(*dest, full);
     }
 
     pub fn shift_in_chunked(dest: &mut BitBucket) {
         for c in chunks.iter() {
-            dest.shift_in(c);
+            dest.shift_in(*c);
         }
         assert_eq!(*dest, full);
     }

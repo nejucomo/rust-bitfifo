@@ -4,7 +4,7 @@ use extra::container::Deque;
 
 // Local sub-modules:
 use BitCount;
-use item::Item;
+use item::{Pushable, Poppable};
 use bitbucket::BitBucket;
 
 
@@ -29,16 +29,16 @@ impl BitFifo {
     }
 
     // Polymorphic push/pop:
-    pub fn push<T: Item>(&mut self, source: &T, limit: Option<BitCount>) {
+    pub fn push<T: Pushable>(&mut self, source: T, limit: Option<BitCount>) {
         source.push_into(self, limit);
     }
 
-    pub fn pop<T: Item>(&mut self, limit: Option<BitCount>) -> (T, BitCount) {
-        Item::pop_from(self, limit)
+    pub fn pop<T: Poppable>(&mut self, limit: Option<BitCount>) -> (T, BitCount) {
+        Poppable::pop_from(self, limit)
     }
 
     // Concrete BitBucket push/pop:
-    pub fn push_bitbucket(&mut self, source: &BitBucket) {
+    pub fn push_bitbucket(&mut self, source: BitBucket) {
         let total = self.incoming.count + source.count;
         assert_le!(total, 2 * uint::bits);
 
@@ -46,8 +46,8 @@ impl BitFifo {
             let mut incoming = source.clone();
 
             let mut overflow = BitBucket::new();
-            overflow.shift_in(&self.incoming);
-            overflow.shift_in(&incoming.shift_out((uint::bits).checked_sub(&self.incoming.count).unwrap()));
+            overflow.shift_in(self.incoming);
+            overflow.shift_in(incoming.shift_out((uint::bits).checked_sub(&self.incoming.count).unwrap()));
             assert_eq!(overflow.count, uint::bits);
             self.queue.push_back(overflow.bits);
 
@@ -78,7 +78,7 @@ impl BitFifo {
             assert_le!(count, self.outgoing.count + result.count);
             assert_le!(result.count, count);
             let outcount = count.checked_sub(&result.count).unwrap();
-            result.shift_in(&self.outgoing.shift_out(outcount));
+            result.shift_in(self.outgoing.shift_out(outcount));
 
             result
 

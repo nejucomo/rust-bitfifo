@@ -15,7 +15,7 @@ impl BitBucket {
         BitBucket { bits: 0, count: 0 }
     }
 
-    pub fn shift_in(&mut self, source: &BitBucket) {
+    pub fn shift_in(&mut self, source: BitBucket) {
         let total = self.count + source.count;
         assert_le!(total, uint::bits);
         self.bits = (self.bits << source.count) | source.bits;

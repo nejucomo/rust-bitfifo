@@ -7,7 +7,7 @@ extern mod extra;
 
 
 pub use bitfifo::BitFifo;
-pub use item::Item;
+pub use item::{Pushable, Poppable, poppable_capacity};
 pub use bitbucket::BitBucket;
 
 

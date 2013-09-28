@@ -7,10 +7,10 @@ mod highlevel {
 
         let mut fifo = BitFifo::new();
 
-        fifo.push(&0xABu8, None);
-        fifo.push(&0xCDu8, None);
-        fifo.push(&0xEFu8, None);
-        fifo.push(&0x89u8, None);
+        fifo.push(0xABu8, None);
+        fifo.push(0xCDu8, None);
+        fifo.push(0xEFu8, None);
+        fifo.push(0x89u8, None);
         assert_eq!(fifo.count(), 32);
 
         let (x, count): (u32, BitCount) = fifo.pop(None);
@@ -27,7 +27,7 @@ mod highlevel {
 
         let mut fifo = BitFifo::new();
 
-        fifo.push(&0xABCDEF89u32, None);
+        fifo.push(0xABCDEF89u32, None);
         assert_eq!(fifo.count(), 32);
 
         let (a, acnt): (u8, BitCount) = fifo.pop(None);
@@ -59,8 +59,8 @@ mod highlevel {
         let mut fifo = BitFifo::new();
 
         do 3.times {
-            fifo.push(&true, None);
-            fifo.push(&false, None);
+            fifo.push(true, None);
+            fifo.push(false, None);
         }
 
         let (answer, count): (uint, BitCount) = fifo.pop(None);
@@ -98,7 +98,7 @@ mod item {
 
                 #[test] fn fill_drain() { fill_drain_items($datagen()) }
                 #[test] fn lockstep() { lockstep_items($datagen()) }
-                #[test] fn push_pop() { push_pop_vec($datagen()) }
+                #[test] fn push_pop() { push_pop_unique_vec($datagen()) }
             }
         );
 
@@ -128,7 +128,7 @@ mod utils {
     use std::uint;
     use BitCount;
     use BitFifo;
-    use item::Item;
+    use item::{Pushable, Poppable};
     use bitbucket::BitBucket;
 
     // datasets:
@@ -192,26 +192,27 @@ mod utils {
         test_lockstep(bs, push_bb, pop_bb)
     }
 
-    pub fn fill_drain_items<T: Item>(xs: &[T]) {
+    pub fn fill_drain_items<T: Eq + Clone + Pushable + Poppable>(xs: &[T]) {
         test_fill_drain(xs, push_item, pop_item)
     }
 
-    pub fn lockstep_items<T: Item>(xs: &[T]) {
+    pub fn lockstep_items<T: Eq + Clone + Pushable + Poppable>(xs: &[T]) {
         test_lockstep(xs, push_item, pop_item)
     }
 
-    pub fn push_pop_vec<T: Item>(xs: ~[T]) {
+    pub fn push_pop_unique_vec<T: Eq + Pushable + Poppable>(xs: ~[T]) {
         let xcount = xs.bit_count();
+        let xsborrow: &[T] = xs;
         let mut fifo = BitFifo::new();
-        fifo.push(&xs, None);
+        fifo.push(xsborrow, None);
         assert_eq!(fifo.count(), xcount);
         let (ys, count) = fifo.pop(None);
-        assert_eq!(xs, ys);
+        assert_eq!(&xs, &ys);
         assert_eq!(xcount, count);
     }
 
     // Private:
-    fn push_bb(fifo: &mut BitFifo, b: &BitBucket) -> BitCount {
+    fn push_bb(fifo: &mut BitFifo, b: BitBucket) -> BitCount {
         fifo.push_bitbucket(b);
         b.count
     }
@@ -221,28 +222,29 @@ mod utils {
         (out, b.count)
     }
 
-    fn push_item<T: Item>(fifo: &mut BitFifo, x: &T) -> BitCount {
+    fn push_item<T: Pushable>(fifo: &mut BitFifo, x: T) -> BitCount {
+        let result = x.bit_count();
         fifo.push(x, None);
-        x.bit_count()
+        result
     }
 
-    fn pop_item<T: Item>(fifo: &mut BitFifo, x: &T) -> (T, BitCount) {
+    fn pop_item<T: Pushable + Poppable>(fifo: &mut BitFifo, x: &T) -> (T, BitCount) {
         let incount = x.bit_count();
         let (out, outcount) = fifo.pop(Some(incount));
         assert_eq!(incount, outcount);
         (out, outcount)
     }
 
-    fn test_fill_drain<T: Eq>(xs: &[T],
-                              push: &fn(&mut BitFifo, &T) -> BitCount,
-                              pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
+    fn test_fill_drain<T: Eq + Clone>(xs: &[T],
+                                      push: &fn(&mut BitFifo, T) -> BitCount,
+                                      pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
     {
         let mut fifo = BitFifo::new();
         let mut count = 0;
 
         // Fill:
         for x in xs.iter() {
-            count += push(&mut fifo, x);
+            count += push(&mut fifo, x.clone());
             assert_eq!(fifo.count(), count);
         }
 
@@ -256,16 +258,16 @@ mod utils {
         assert_eq!(fifo.count(), 0);
     }
 
-    fn test_lockstep<T: Eq>(xs: &[T],
-                            push: &fn(&mut BitFifo, &T) -> BitCount,
-                            pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
+    fn test_lockstep<T: Eq + Clone>(xs: &[T],
+                                    push: &fn(&mut BitFifo, T) -> BitCount,
+                                    pop: &fn(&mut BitFifo, &T) -> (T, BitCount))
     {
         let mut fifo = BitFifo::new();
 
         // Fill/drain in lockstep:
         for x in xs.iter() {
             assert_eq!(fifo.count(), 0);
-            let c = push(&mut fifo, x);
+            let c = push(&mut fifo, x.clone());
             assert_eq!(fifo.count(), c);
             let (out, _) = pop(&mut fifo, x);
             assert_eq!(&out, x);
