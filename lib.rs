@@ -30,5 +30,3 @@ pub type BitCount = uint;
 mod bitfifo;
 mod item;
 mod bitbucket;
-
-#[cfg(test)] mod tests;
