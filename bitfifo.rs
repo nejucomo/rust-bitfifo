@@ -29,11 +29,27 @@ impl BitFifo {
     }
 
     // Polymorphic push/pop:
-    pub fn push<T: Pushable>(&mut self, source: T, limit: Option<BitCount>) {
+    pub fn push<T: Pushable>(&mut self, source: T) {
+        self.push_opt_limit(source, None);
+    }
+
+    pub fn pop<T: Poppable>(&mut self) -> (T, BitCount) {
+        self.pop_opt_limit(None)
+    }
+
+    pub fn push_limit<T: Pushable>(&mut self, source: T, limit: BitCount) {
+        self.push_opt_limit(source, Some(limit));
+    }
+
+    pub fn pop_limit<T: Poppable>(&mut self, limit: BitCount) -> (T, BitCount) {
+        self.pop_opt_limit(Some(limit))
+    }
+
+    fn push_opt_limit<T: Pushable>(&mut self, source: T, limit: Option<BitCount>) {
         source.push_into(self, limit);
     }
 
-    pub fn pop<T: Poppable>(&mut self, limit: Option<BitCount>) -> (T, BitCount) {
+    fn pop_opt_limit<T: Poppable>(&mut self, limit: Option<BitCount>) -> (T, BitCount) {
         Poppable::pop_from(self, limit)
     }
 

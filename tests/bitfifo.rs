@@ -7,13 +7,13 @@ mod highlevel {
 
         let mut fifo = BitFifo::new();
 
-        fifo.push(0xABu8, None);
-        fifo.push(0xCDu8, None);
-        fifo.push(0xEFu8, None);
-        fifo.push(0x89u8, None);
+        fifo.push(0xABu8);
+        fifo.push(0xCDu8);
+        fifo.push(0xEFu8);
+        fifo.push(0x89u8);
         assert_eq!(fifo.count(), 32);
 
-        let (x, count): (u32, BitCount) = fifo.pop(None);
+        let (x, count): (u32, BitCount) = fifo.pop();
 
         assert_eq!(fifo.count(), 0);
         assert_eq!(count, 32);
@@ -27,25 +27,25 @@ mod highlevel {
 
         let mut fifo = BitFifo::new();
 
-        fifo.push(0xABCDEF89u32, None);
+        fifo.push(0xABCDEF89u32);
         assert_eq!(fifo.count(), 32);
 
-        let (a, acnt): (u8, BitCount) = fifo.pop(None);
+        let (a, acnt): (u8, BitCount) = fifo.pop();
         assert_eq!(fifo.count(), 24);
         assert_eq!(acnt, 8);
         assert_eq!(a, 0xABu8);
 
-        let (b, bcnt): (u8, BitCount) = fifo.pop(None);
+        let (b, bcnt): (u8, BitCount) = fifo.pop();
         assert_eq!(fifo.count(), 16);
         assert_eq!(bcnt, 8);
         assert_eq!(b, 0xCDu8);
 
-        let (c, ccnt): (u8, BitCount) = fifo.pop(None);
+        let (c, ccnt): (u8, BitCount) = fifo.pop();
         assert_eq!(fifo.count(), 8);
         assert_eq!(ccnt, 8);
         assert_eq!(c, 0xEFu8);
 
-        let (d, dcnt): (u8, BitCount) = fifo.pop(None);
+        let (d, dcnt): (u8, BitCount) = fifo.pop();
         assert_eq!(fifo.count(), 0);
         assert_eq!(dcnt, 8);
         assert_eq!(d, 0x89u8);
@@ -59,11 +59,11 @@ mod highlevel {
         let mut fifo = BitFifo::new();
 
         do 3.times {
-            fifo.push(true, None);
-            fifo.push(false, None);
+            fifo.push(true);
+            fifo.push(false);
         }
 
-        let (answer, count): (uint, BitCount) = fifo.pop(None);
+        let (answer, count): (uint, BitCount) = fifo.pop();
 
         assert_eq!(answer, 42u);
         assert_eq!(count, 6u);
@@ -204,9 +204,9 @@ mod utils {
         let xcount = xs.bit_count();
         let xsborrow: &[T] = xs;
         let mut fifo = BitFifo::new();
-        fifo.push(xsborrow, None);
+        fifo.push(xsborrow);
         assert_eq!(fifo.count(), xcount);
-        let (ys, count) = fifo.pop(None);
+        let (ys, count) = fifo.pop();
         assert_eq!(&xs, &ys);
         assert_eq!(xcount, count);
     }
@@ -224,13 +224,13 @@ mod utils {
 
     fn push_item<T: Pushable>(fifo: &mut BitFifo, x: T) -> BitCount {
         let result = x.bit_count();
-        fifo.push(x, None);
+        fifo.push(x);
         result
     }
 
     fn pop_item<T: Pushable + Poppable>(fifo: &mut BitFifo, x: &T) -> (T, BitCount) {
         let incount = x.bit_count();
-        let (out, outcount) = fifo.pop(Some(incount));
+        let (out, outcount) = fifo.pop_limit(incount);
         assert_eq!(incount, outcount);
         (out, outcount)
     }
