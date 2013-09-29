@@ -1,3 +1,8 @@
+/* Copyright 2013 - Nathan Wilcox - Distributed under the terms of the
+ * TGPPLv1 or at your option any later version.  See ./COPYING.TGPPL.rst
+ * for details.
+ */
+
 use std::uint;
 use BitCount;
 

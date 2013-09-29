@@ -10,6 +10,14 @@ Disclaimers
 
 I'm new to rust.  If you have suggestions or patches, please file tickets!
 
+License
+-------
+
+Copyright 2013 - Nathan Wilcox - Distributed under the terms of the
+TGPPLv1 or at your option any later version.  See ./COPYING.TGPPL.rst
+for details.
+
+
 Installation
 ============
 
