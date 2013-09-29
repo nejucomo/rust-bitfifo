@@ -8,7 +8,6 @@ extern mod extra;
 
 pub use bitfifo::BitFifo;
 pub use item::{Pushable, Poppable, poppable_capacity};
-pub use bitbucket::BitBucket;
 
 
 // These basic items/macros are used in multiple files:
@@ -27,6 +26,10 @@ macro_rules! assert_le (
 pub type BitCount = uint;
 
 
+// Public:
 mod bitfifo;
 mod item;
+
+// Private:
 mod bitbucket;
+

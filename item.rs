@@ -3,7 +3,6 @@ use std::{uint, u64, u32, u16, u8};
 
 use BitCount;
 use BitFifo;
-use bitbucket::BitBucket;
 
 
 pub trait Pushable {
@@ -24,36 +23,10 @@ pub fn poppable_capacity<T: Poppable>() -> Option<BitCount> {
 
 
 // Implementations:
-impl Pushable for BitBucket {
-    fn push_into(&self, fifo: &mut BitFifo, limit: Option<BitCount>) {
-        fifo.push_bitbucket(
-            BitBucket {
-                bits: self.bits,
-                count: get_push_limit(self, limit)
-            });
-    }
-
-    fn bit_count(&self) -> BitCount { self.count }
-}
-
-impl Poppable for BitBucket {
-    fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (BitBucket, BitCount) {
-        let c = get_pop_limit::<BitBucket>(fifo, limit);
-        let result = fifo.pop_bitbucket(c);
-        (result, result.count)
-    }
-
-    fn bit_capacity(_: Option<BitBucket>) -> Option<BitCount> { Some(uint::bits) }
-}
-
-
 impl Pushable for bool {
     fn push_into(&self, fifo: &mut BitFifo, limit: Option<BitCount>) {
-        fifo.push_bitbucket(
-            BitBucket {
-                bits: match *self { false => 0, true => 1 },
-                count: get_push_limit(self, limit)
-            });
+        let bits = match *self { false => 0, true => 1 };
+        fifo.push_uint(bits, get_push_limit(self, limit));
     }
 
     fn bit_count(&self) -> BitCount { 1u }
@@ -61,14 +34,14 @@ impl Pushable for bool {
 
 impl Poppable for bool {
     fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> (bool, BitCount) {
-        let c = get_pop_limit::<BitBucket>(fifo, limit);
-        let bb = fifo.pop_bitbucket(c);
-        let result = match bb.bits {
+        let c = get_pop_limit::<bool>(fifo, limit);
+        let (bits, count) = fifo.pop_uint(c);
+        let result = match bits {
             0u => false,
             1u => true,
-            _ => fail!("Invalid boolean bit pattern: %x", bb.bits)
+            _ => fail!("Invalid boolean bit pattern: %x", bits)
         };
-        (result, bb.count)
+        (result, count)
     }
 
     fn bit_capacity(_: Option<bool>) -> Option<BitCount> { Some(1u) }
@@ -79,11 +52,7 @@ macro_rules! uint_pushable_impl (
     ($T:ty, $bits:expr) => (
         impl Pushable for $T {
             fn push_into(&self, fifo: &mut BitFifo, limit: Option<BitCount>) {
-                fifo.push_bitbucket(
-                    BitBucket {
-                        bits: *self as uint,
-                        count: get_push_limit(self, limit)
-                    });
+                fifo.push_uint(*self as uint, get_push_limit(self, limit));
             }
 
             fn bit_count(&self) -> BitCount { $bits }
@@ -96,8 +65,8 @@ macro_rules! uint_poppable_impl (
         impl Poppable for $T {
             fn pop_from(fifo: &mut BitFifo, limit: Option<BitCount>) -> ($T, BitCount) {
                 let count = get_pop_limit::<$T>(fifo, limit);
-                let bucket = fifo.pop_bitbucket(count);
-                (bucket.bits as $T, bucket.count)
+                let (bits, count) = fifo.pop_uint(count);
+                (bits as $T, count)
             }
 
             fn bit_capacity(_: Option<$T>) -> Option<BitCount> { Some($bits) }
